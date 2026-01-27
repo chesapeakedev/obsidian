@@ -1,30 +1,19 @@
-import { graphql } from 'https://cdn.pika.dev/graphql@15.0.0';
-import { renderPlaygroundPage } from 'https://deno.land/x/oak_graphql@0.6.2/graphql-playground-html/render-playground-html.ts';
-import { makeExecutableSchema } from 'https://deno.land/x/oak_graphql@0.6.2/graphql-tools/schema/makeExecutableSchema.ts';
-import { Cache } from './quickCache.js';
-import queryDepthLimiter from './DoSSecurity.ts';
-import { restructure } from './restructure.ts';
-import { normalizeObject } from './normalize.ts';
-import { isMutation, invalidateCache } from './invalidateCacheCheck.ts';
-import { mapSelectionSet } from './mapSelections.js';
-import { HashTable } from './queryHash.js';
+import { graphql } from "npm:graphql@^15.0.0";
+import { makeExecutableSchema } from "npm:@graphql-tools/schema@^10.0.0";
+import { renderPlaygroundPage } from "npm:graphql-playground-html";
+import { Cache } from "./quickCache.js";
+import queryDepthLimiter from "./DoSSecurity.ts";
+import { restructure } from "./restructure.ts";
+import { normalizeObject } from "./normalize.ts";
+import { invalidateCache, isMutation } from "./invalidateCacheCheck.ts";
+import { mapSelectionSet } from "./mapSelections.js";
+import { HashTable } from "./queryHash.js";
 
-interface Constructable<T> {
-  new (...args: any): T & OakRouter;
-}
-
-interface OakRouter {
-  post: any;
-  get: any;
-  obsidianSchema?: any;
-}
-
-export interface ObsidianRouterOptions<T> {
-  Router: Constructable<T>;
+export interface ObsidianServiceOptions {
   path?: string;
   typeDefs: any;
   resolvers: ResolversProps;
-  context?: (ctx: any) => any;
+  context?: (req: Request) => any | Promise<any>;
   usePlayground?: boolean;
   useCache?: boolean;
   redisPort?: number;
@@ -51,29 +40,27 @@ export let redisPortExport: number = 6379;
 export const scope: Record<string, unknown> = {};
 
 /**
- *
- * @param param0
- * @returns
+ * Creates an HTTP handler function for GraphQL requests using Deno's built-in HTTP server
+ * @param options Configuration options for the Obsidian Service
+ * @returns A handler function that can be used with Deno.serve
  */
-export async function ObsidianRouter<T>({
-  Router,
-  path = '/graphql',
+export async function ObsidianService({
+  path = "/graphql",
   typeDefs,
   resolvers,
   context,
   usePlayground = false,
   useCache = true, // default to true
   redisPort = 6379,
-  policy = 'allkeys-lru',
-  maxmemory = '2000mb',
+  policy = "allkeys-lru",
+  maxmemory = "2000mb",
   searchTerms = [], // Developer can pass in array of search categories
   persistQueries = false, // default to false
   hashTableSize = 16, // default to 16
   maxQueryDepth = 0,
-  customIdentifier = ['__typename', '_id'],
+  customIdentifier = ["__typename", "_id"],
   mutationTableMap = {}, // Developer passes in object where keys are add mutations and values are arrays of affected tables
-}: ObsidianRouterOptions<T>): Promise<T> {
-  const router = new Router();
+}: ObsidianServiceOptions): Promise<(req: Request) => Promise<Response>> {
   const schema = makeExecutableSchema({ typeDefs, resolvers });
 
   let cache, hashTable;
@@ -86,132 +73,169 @@ export async function ObsidianRouter<T>({
     hashTable = new HashTable(hashTableSize);
   }
 
-  //post
-  await router.post(path, async (ctx: any) => {
+  // Return handler function for Deno.serve
+  return async (req: Request): Promise<Response> => {
+    const url = new URL(req.url);
 
-    const { response, request } = ctx;
-    if (!request.hasBody) return;
+    // Only handle requests to the configured path
+    if (url.pathname !== path) {
+      return new Response("Not Found", { status: 404 });
+    }
 
-    try {
-      let queryStr;
-      let body = await request.body().value;
-      if (persistQueries && body.hash && !body.query) {
-        const { hash } = body;
-        queryStr = hashTable.get(hash);
-        // if not found in hash table, respond so we can send full query.
-        if (!queryStr) {
-          response.status = 204;
-          return;
+    // Handle POST requests (GraphQL queries/mutations)
+    if (req.method === "POST") {
+      try {
+        let queryStr;
+        let body: any = {};
+
+        // Parse request body
+        if (req.body) {
+          body = await req.json();
+        } else {
+          return new Response("Request body required", { status: 400 });
         }
-      } else if (persistQueries && body.hash && body.query) {
-        const { hash, query } = body;
-        hashTable.add(hash, query);
-        queryStr = query;
-      } else if (persistQueries && !body.hash) {
-        throw new Error('Unable to process request because hashed query was not provided');
-      } else if (!persistQueries) {
-        queryStr = body.query;
-      } else {
-        throw new Error('Unable to process request because query argument not provided');
-      }
 
-      const contextResult = context ? await context(ctx) : undefined;
-      // const selectedFields = mapSelectionSet(queryStr); // Gets requested fields from query and saves into an array
-      if (maxQueryDepth) queryDepthLimiter(queryStr, maxQueryDepth); // If a securty limit is set for maxQueryDepth, invoke queryDepthLimiter, which throws error if query depth exceeds maximum
-      let restructuredBody = { query: restructure({query: queryStr}) }; // Restructure gets rid of variables and fragments from the query
+        if (persistQueries && body.hash && !body.query) {
+          const { hash } = body;
+          queryStr = hashTable.get(hash);
+          // if not found in hash table, respond so we can send full query.
+          if (!queryStr) {
+            return new Response(null, { status: 204 });
+          }
+        } else if (persistQueries && body.hash && body.query) {
+          const { hash, query } = body;
+          hashTable.add(hash, query);
+          queryStr = query;
+        } else if (persistQueries && !body.hash) {
+          throw new Error(
+            "Unable to process request because hashed query was not provided",
+          );
+        } else if (!persistQueries) {
+          queryStr = body.query;
+        } else {
+          throw new Error(
+            "Unable to process request because query argument not provided",
+          );
+        }
 
-      // IF WE ARE USING A CACHE
-      if (useCache) {
+        const contextResult = context ? await context(req) : undefined;
+        // const selectedFields = mapSelectionSet(queryStr); // Gets requested fields from query and saves into an array
+        if (maxQueryDepth) queryDepthLimiter(queryStr, maxQueryDepth); // If a securty limit is set for maxQueryDepth, invoke queryDepthLimiter, which throws error if query depth exceeds maximum
+        let restructuredBody = { query: restructure({ query: queryStr }) }; // Restructure gets rid of variables and fragments from the query
 
-        let cacheQueryValue = await cache.read(queryStr); // Parses query string into query key and checks cache for that key
+        // IF WE ARE USING A CACHE
+        if (useCache) {
+          let cacheQueryValue = await cache.read(queryStr); // Parses query string into query key and checks cache for that key
 
-        // ON CACHE MISS
-        if (!cacheQueryValue) {
-          // QUERY THE DATABASE
+          // ON CACHE MISS
+          if (!cacheQueryValue) {
+            // QUERY THE DATABASE
+            const gqlResponse = await (graphql as any)(
+              schema,
+              queryStr,
+              resolvers,
+              contextResult,
+              body.variables || undefined,
+              body.operationName || undefined,
+            );
+
+            // customIdentifier is a default param for Obsidian Service - defaults to ['__typename', '_id]
+            const normalizedGQLResponse = normalizeObject( // Recursively flattens an arbitrarily nested object into an objects with hash key and hashable object pairs
+              gqlResponse,
+              customIdentifier,
+            );
+
+            // If operation is mutation, invalidate relevant responses in cache
+            if (isMutation(restructuredBody)) {
+              invalidateCache(
+                normalizedGQLResponse,
+                queryStr,
+                mutationTableMap,
+              );
+              // ELSE, simply write to the cache
+            } else {
+              await cache.write(queryStr, normalizedGQLResponse, searchTerms);
+            }
+            // AFTER HANDLING THE CACHE, RETURN THE ORIGINAL RESPONSE
+            return new Response(JSON.stringify(gqlResponse), {
+              status: 200,
+              headers: {
+                "content-type": "application/json; charset=utf-8",
+              },
+            });
+            // ON CACHE HIT
+          } else {
+            return new Response(JSON.stringify(cacheQueryValue), {
+              status: 200,
+              headers: {
+                "content-type": "application/json; charset=utf-8",
+              },
+            });
+          }
+          // IF NOT USING A CACHE
+        } else {
+          // DIRECTLY QUERY THE DATABASE
           const gqlResponse = await (graphql as any)(
             schema,
             queryStr,
             resolvers,
             contextResult,
             body.variables || undefined,
-            body.operationName || undefined
+            body.operationName || undefined,
           );
 
-          // customIdentifier is a default param for Obsidian Router - defaults to ['__typename', '_id]
-          const normalizedGQLResponse = normalizeObject( // Recursively flattens an arbitrarily nested object into an objects with hash key and hashable object pairs
-            gqlResponse,
-            customIdentifier
-          );
-
-          // If operation is mutation, invalidate relevant responses in cache
-          if (isMutation(restructuredBody)) { 
-            invalidateCache(normalizedGQLResponse, queryStr, mutationTableMap);
-          // ELSE, simply write to the cache
-          } else {
-            await cache.write(queryStr, normalizedGQLResponse, searchTerms);
-          }
-          // AFTER HANDLING THE CACHE, RETURN THE ORIGINAL RESPONSE 
-          response.status = 200;
-          response.body = gqlResponse;
-          return;
-        // ON CACHE HIT
-        } else {
-          response.status = 200;
-          response.body = cacheQueryValue; // Returns response from cache
-          return;
+          return new Response(JSON.stringify(gqlResponse), {
+            status: 200,
+            headers: {
+              "content-type": "application/json; charset=utf-8",
+            },
+          });
         }
-      // IF NOT USING A CACHE
-      } else {
-        // DIRECTLY QUERY THE DATABASE
-        const gqlResponse = await (graphql as any)(
-          schema,
-          queryStr,
-          resolvers,
-          contextResult,
-          body.variables || undefined,
-          body.operationName || undefined
-        );
-
-        response.status = 200;
-        response.body = gqlResponse; // Returns response from database
-        return;
-      }
-    } catch (error) {
-      response.status = 400;
-      response.body = {
-        data: null,
-        errors: [
-          {
-            message: error.message ? error.message : error,
+      } catch (error) {
+        const errorResponse = {
+          data: null,
+          errors: [
+            {
+              message: error.message ? error.message : String(error),
+            },
+          ],
+        };
+        console.error("Error: ", error.message || error);
+        return new Response(JSON.stringify(errorResponse), {
+          status: 400,
+          headers: {
+            "content-type": "application/json; charset=utf-8",
           },
-        ],
-      };
-      console.error('Error: ', error.message);
+        });
+      }
     }
-  });
 
-  // serve graphql playground
-  // deno-lint-ignore require-await
-  await router.get(path, async (ctx: any) => {
-    const { request, response } = ctx;
-    if (usePlayground) {
-      const prefersHTML = request.accepts('text/html');
-      const optionsObj: any = {
-        'schema.polling.enable': false, // enables automatic schema polling
-      };
+    // Handle GET requests (GraphQL Playground)
+    if (req.method === "GET" && usePlayground) {
+      const acceptHeader = req.headers.get("accept") || "";
+      const prefersHTML = acceptHeader.includes("text/html");
 
       if (prefersHTML) {
+        const optionsObj: any = {
+          "schema.polling.enable": false, // enables automatic schema polling
+        };
+
         const playground = renderPlaygroundPage({
-          endpoint: request.url.origin + path,
-          subscriptionEndpoint: request.url.origin,
+          endpoint: url.origin + path,
+          subscriptionEndpoint: url.origin,
           settings: optionsObj,
         });
-        response.status = 200;
-        response.body = playground;
-        return;
+
+        return new Response(playground, {
+          status: 200,
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+          },
+        });
       }
     }
-  });
 
-  return router;
+    // Method not allowed
+    return new Response("Method Not Allowed", { status: 405 });
+  };
 }

@@ -25,7 +25,7 @@ export function destructureQueries(queryOperationStr, queryOperationVars) {
     // reassigns query string to handle directives
     queryOperationStr = destructureQueriesWithDirectives(
       queryOperationStr,
-      queryOperationVars
+      queryOperationVars,
     );
   }
 
@@ -35,15 +35,14 @@ export function destructureQueries(queryOperationStr, queryOperationVars) {
   // create an array of individual query strings
   const arrayOfQueryStrings = findQueryStrings(queryStrings);
   // define the type property name of the operation query/mutation
-  const typePropName =
-    queryOperationStr.trim().slice(0, 8) === "mutation"
-      ? "mutations"
-      : "queries";
+  const typePropName = queryOperationStr.trim().slice(0, 8) === "mutation"
+    ? "mutations"
+    : "queries";
   // create a queries object from array of query strings
   const queriesObj = createQueriesObj(
     arrayOfQueryStrings,
     typePropName,
-    queryOperationVars
+    queryOperationVars,
   );
 
   return queriesObj;
@@ -300,7 +299,7 @@ export function destructureQueriesWithFragments(queryOperationStr) {
     return newStr;
   };
   // keep calling helper function as long as 'fragment' is found in the string
-  //! TODO: indices for one time loop instead of recursion
+  // Note: Could be optimized to use indices for a single loop instead of recursion
   while (queryCopy.indexOf("fragment") !== -1) {
     queryCopy = separateFragments(queryCopy);
   }
@@ -309,7 +308,8 @@ export function destructureQueriesWithFragments(queryOperationStr) {
 
   const fragmentObj = {};
 
-  //! TODO: OPTIMIZE, SHOULD NOT NEED TO ITERATE THROUGH WHOLE QUERY STRING TO FIND THE ONE WORD NAME OF THE FRAGMENT. MAYBE WHILE STRING INDEX< INDEX OF '{' ?
+  // Note: Could be optimized to avoid iterating through whole query string to find fragment name.
+  // Could use string index comparison (while string index < index of '{') for better performance.
   // store each fragment name with its corresponding fields in fragmentObj
   fragments.forEach((fragment) => {
     const index = fragment.indexOf("{");
@@ -375,7 +375,7 @@ export function destructureQueriesWithDirectives(queryStr, queryVars) {
   let includeQueryField;
 
   // start and end positions of a directive (e.g.  --> @include (if: true) <-- )
-  /* NOTE: directives (from '@' to the closest closing paren) will always be 
+  /* NOTE: directives (from '@' to the closest closing paren) will always be
     deleted from the query string, regardless of whether the value of the variable is true or false */
   let startDeleteIndex;
   let endDeleteIndex;
@@ -457,7 +457,7 @@ export function destructureQueriesWithDirectives(queryStr, queryVars) {
 
         queryStr = queryStr.replace(
           queryStr.slice(startFieldNameIndex, endFieldNameIndex),
-          ""
+          "",
         );
       }
 

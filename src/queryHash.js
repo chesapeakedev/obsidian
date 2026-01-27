@@ -1,7 +1,7 @@
 // Create hash table
 class Node {
   constructor(key, str) {
-    this.value = {key, str};
+    this.value = { key, str };
     this.next = null;
   }
 }
@@ -19,7 +19,7 @@ class LinkedList {
       this.tail = this.head;
     } else {
       this.tail.next = new Node(key, str);
-      this.tail = this.tail.next
+      this.tail = this.tail.next;
     }
   }
 
@@ -49,7 +49,7 @@ export class HashTable {
       // initialize a new linked list and add a node to it
       this.table[index] = new LinkedList();
       this.table[index].addNode(sha256Str, str);
-    // if there is already a linked list at that index
+      // if there is already a linked list at that index
     } else {
       // add a new node
       this.table[index].addNode(sha256Str, str);
@@ -58,12 +58,10 @@ export class HashTable {
 
   // gets the queryStr given the SHA256-Hashed queryStr
   get(key) {
-
     const index = hashSlingingSlasher(key, this.SIZE);
     if (!this.table[index]) return undefined;
     return this.table[index].getNode(key);
   }
-
 }
 
 // hashing function

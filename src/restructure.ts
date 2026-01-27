@@ -43,7 +43,7 @@ export function restructure(value: any) {
     },
     Variable: (node: any) => {
       if (variables.hasOwnProperty(node.name.value)) {
-        return { kind: 'EnumValue', value: variables[node.name.value] };
+        return { kind: "EnumValue", value: variables[node.name.value] };
       }
     },
   };
@@ -90,9 +90,9 @@ export function restructure(value: any) {
     InlineFragment: (node: any) => {
       return [
         {
-          kind: 'Field',
+          kind: "Field",
           alias: undefined,
-          name: { kind: 'Name', value: '__typename' },
+          name: { kind: "Name", value: "__typename" },
           arguments: [],
           directives: [],
           selectionSet: undefined,
@@ -121,10 +121,10 @@ export function restructure(value: any) {
     const varkeys = Object.keys(variables);
     //exfragskeys.every(key=>fragskeys.includes(key))
     if (!exfragskeys.every((key) => fragskeys.includes(key))) {
-      return console.log({ error: 'missing fragment definitions' });
+      return console.log({ error: "missing fragment definitions" });
     }
     if (!exvarsskeys.every((key) => varkeys.includes(key))) {
-      return console.log({ error: 'missing variable definitions' });
+      return console.log({ error: "missing variable definitions" });
     }
   }
 

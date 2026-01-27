@@ -46,7 +46,7 @@ export function addTypenamesToFieldsStr(fieldsStr) {
     if (nextOpenBrace === -1) isAnotherOpenBrace = false;
     const nextTypenameIndex = newFieldsStr.indexOf(
       "__typename",
-      currentOpenBrace
+      currentOpenBrace,
     );
     // check to see if __typename is between the current open brace and the next open brace
     if (
@@ -54,8 +54,7 @@ export function addTypenamesToFieldsStr(fieldsStr) {
       nextTypenameIndex === -1
     ) {
       // inserts __typename after currentOpenBrace
-      newFieldsStr =
-        newFieldsStr.substring(0, currentOpenBrace + 1) +
+      newFieldsStr = newFieldsStr.substring(0, currentOpenBrace + 1) +
         " __typename " +
         newFieldsStr.substring(currentOpenBrace + 1);
       // updates nextOpenBrace after insertion

@@ -1,9 +1,9 @@
 /** @format */
 import { gql } from "https://deno.land/x/oak_graphql@0.6.4/mod.ts";
 import { visit } from "https://deno.land/x/graphql_deno@v15.0.0/mod.ts";
-import { scope } from './Obsidian.ts';
-import { Cache } from './quickCache.js';
-import { deepEqual } from './utils.js';
+import { scope } from "./Obsidian.ts";
+import { Cache } from "./quickCache.js";
+import { deepEqual } from "./utils.js";
 
 // const cache = new Cache();
 
@@ -18,7 +18,7 @@ export function isMutation(gqlQuery: { query: string }): boolean {
 
   const checkMutationVisitor: object = {
     OperationDefinition: (node: { operation: string }) => {
-      if (node.operation === 'mutation') {
+      if (node.operation === "mutation") {
         isMutation = true;
       }
     },
@@ -27,7 +27,7 @@ export function isMutation(gqlQuery: { query: string }): boolean {
   // left this piece of code in case someone decides to build upon subscriptions, but for now obsidian doesn't do anything with subscriptions
   const subscriptionTunnelVisitor = {
     OperationDefinition: (node: { operation: string }) => {
-      if (node.operation === 'subscription') {
+      if (node.operation === "subscription") {
       }
     },
   };
@@ -49,7 +49,7 @@ export function isMutation(gqlQuery: { query: string }): boolean {
 export async function invalidateCache(
   normalizedMutation: { [key: string]: object },
   queryString: string,
-  mutationTableMap: Record<string, unknown>
+  mutationTableMap: Record<string, unknown>,
 ) {
   let normalizedData: object;
   let cachedVal: any;
@@ -66,9 +66,8 @@ export async function invalidateCache(
       isDelete(queryString)
     ) {
       await scope.cache.cacheDelete(redisKey);
-    } 
-    else {
-      // Otherwise it's an update or add mutation because response objects from mutation and cache don't match. 
+    } else {
+      // Otherwise it's an update or add mutation because response objects from mutation and cache don't match.
       // We overwrite the existing cache value or write new data if cache at that key doesn't exist
       // Edge case: update is done without changing any values... cache will be deleted from redis because the response obj and cached obj will be equal
       if (cachedVal === undefined) { // checks if add mutation
@@ -78,14 +77,15 @@ export async function invalidateCache(
 
         const staleRefs: Array<string> = mutationTableMap[mutationType]; // Grabs array of affected data tables from dev specified mutationTableMap
 
-        const rootQueryContents = await scope.cache.redis.hgetall('ROOT_QUERY'); // Creates array of all query keys and values in ROOT_QUERY from Redis
+        const rootQueryContents = await scope.cache.redis.hgetall("ROOT_QUERY"); // Creates array of all query keys and values in ROOT_QUERY from Redis
 
-        for (let j = 0; j < staleRefs.length; j++) {                // Checks for all query keys that refer to the affected tables and deletes them from Redis
+        for (let j = 0; j < staleRefs.length; j++) { // Checks for all query keys that refer to the affected tables and deletes them from Redis
           for (let i = 0; i < rootQueryContents.length; i += 2) {
             if (
-              staleRefs[j] === rootQueryContents[i].slice(0, staleRefs[j].length)
+              staleRefs[j] ===
+                rootQueryContents[i].slice(0, staleRefs[j].length)
             ) {
-              scope.cache.redis.hdel('ROOT_QUERY', rootQueryContents[i]);
+              scope.cache.redis.hdel("ROOT_QUERY", rootQueryContents[i]);
             }
           }
         }
@@ -105,7 +105,7 @@ export function isDelete(queryString: string) {
   // Because we check if response object from delete mutation equals to cached object to determine if it's a delete mutation
   // but there may be instances that the object is evicted from cache or never cached previously which would be treated as add or update mutation
   // if we find any keywords we're looking for in the mutation query that infer deletion we force the deletion
-  const deleteKeywords: Array<string> = ['delete', 'remove'];
+  const deleteKeywords: Array<string> = ["delete", "remove"];
   let isDeleteFlag: boolean = false;
 
   for (const keyword of deleteKeywords) {

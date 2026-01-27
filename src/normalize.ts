@@ -12,14 +12,15 @@
 
 export const containsHashableObject = (
   objectInQuestion: any,
-  hashableKeys: Array<string>
+  hashableKeys: Array<string>,
 ): boolean => {
   if (
-    typeof objectInQuestion !== 'object' ||
+    typeof objectInQuestion !== "object" ||
     Array.isArray(objectInQuestion) ||
     !objectInQuestion
-  )
+  ) {
     return false;
+  }
   const objectInQuestionKeysSet = new Set(Object.keys(objectInQuestion));
   return hashableKeys.every((key) => objectInQuestionKeysSet.has(key));
 };
@@ -37,11 +38,11 @@ export const containsHashableObject = (
  */
 export const isHashableObject = (
   objectInQuestion: any,
-  hashableKeys: Array<string>
+  hashableKeys: Array<string>,
 ): boolean => {
   if (!containsHashableObject(objectInQuestion, hashableKeys)) return false;
   for (const key in objectInQuestion) {
-    if (typeof objectInQuestion[key] === 'object') return false;
+    if (typeof objectInQuestion[key] === "object") return false;
   }
   return true;
 };
@@ -59,12 +60,12 @@ type FlatObject = { [key: string]: string | number | boolean };
  */
 export const hashMaker = (
   hashableObject: FlatObject,
-  hashableKeys: Array<string>
+  hashableKeys: Array<string>,
 ): string => {
-  let hash = '';
+  let hash = "";
   for (let i = 0; i < hashableKeys.length; i++) {
     hash += hashableObject[hashableKeys[i]];
-    if (i < hashableKeys.length - 1) hash += '~'
+    if (i < hashableKeys.length - 1) hash += "~";
   }
   return hash;
 };
@@ -78,15 +79,16 @@ export const hashMaker = (
  * @return {GenericObject} A hashable object
  */
 export const printHashableObject = (
-  containsHashableObject: GenericObject
+  containsHashableObject: GenericObject,
 ): GenericObject => {
   const hashObj: GenericObject = {};
   for (const key in containsHashableObject) {
     if (
-      typeof containsHashableObject[key] !== 'object' &&
+      typeof containsHashableObject[key] !== "object" &&
       !hashObj.hasOwnProperty(key)
-    )
+    ) {
       hashObj[key] = containsHashableObject[key];
+    }
   }
   return hashObj;
 };
@@ -116,7 +118,7 @@ export const printHashableObject = (
 export const normalizeObject = (
   nestedObject: GenericObject,
   hashableKeys: Array<string>,
-  normalizedHashableObjects: GenericObject = {}
+  normalizedHashableObjects: GenericObject = {},
 ): GenericObject => {
   let hasAlreadyPrinted = false;
   for (const key in nestedObject) {
@@ -127,15 +129,17 @@ export const normalizeObject = (
       hasAlreadyPrinted = true;
       const hashableObject = printHashableObject(nestedObject);
       const hash = hashMaker(hashableObject, hashableKeys);
-      if (!normalizedHashableObjects.hasOwnProperty(hash))
+      if (!normalizedHashableObjects.hasOwnProperty(hash)) {
         normalizedHashableObjects[hash] = hashableObject;
+      }
     }
-    if (typeof nestedObject[key] === 'object')
+    if (typeof nestedObject[key] === "object") {
       normalizeObject(
         nestedObject[key],
         hashableKeys,
-        normalizedHashableObjects
+        normalizedHashableObjects,
       );
+    }
   }
   return normalizedHashableObjects;
 };

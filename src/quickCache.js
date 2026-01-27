@@ -4,15 +4,14 @@ import "https://deno.land/x/dotenv@v3.2.2/load.ts";
 import { connect } from "https://deno.land/x/redis@v0.29.2/mod.ts";
 import { gql } from "https://deno.land/x/oak_graphql@0.6.4/mod.ts";
 import { print, visit } from "https://deno.land/x/graphql_deno@v15.0.0/mod.ts";
-import { destructureQueries } from './Browser/destructure.js';
-
+import { destructureQueries } from "./Browser/destructure.js";
 
 export class Cache {
   constructor(
     initialCache = {
       ROOT_QUERY: {},
       ROOT_MUTATION: {},
-    }
+    },
   ) {
     this.ROOT_QUERY = initialCache.ROOT_QUERY;
     this.ROOT_MUTATION = initialCache.ROOT_MUTATION;
@@ -21,13 +20,13 @@ export class Cache {
   // METHOD TO CONNECT TO CACHE
   async connect(port, policy, maxmemory) {
     this.redis = await connect({
-      hostname: Deno.env.get('REDIS_HOST'),
+      hostname: Deno.env.get("REDIS_HOST"),
       port: port,
     });
-    console.log('connecting to redis');
+    console.log("connecting to redis");
     this.cacheClear();
-    this.redis.configSet('maxmemory-policy', policy);
-    this.redis.configSet('maxmemory', maxmemory);
+    this.redis.configSet("maxmemory-policy", policy);
+    this.redis.configSet("maxmemory", maxmemory);
   }
 
   // METHOD TO READ FROM REDIS CACHE & RESTRUCTURE THE DATA
@@ -43,7 +42,10 @@ export class Cache {
         const hashArray = this.ROOT_QUERY[queryHash];
         const respObjProp = queries[query].alias ?? queries[query].name;
         // invoke populateAllHashes to add data object to the response object
-        responseObject[respObjProp] = await this.populateAllHashes(hashArray, queries[query].fields);
+        responseObject[respObjProp] = await this.populateAllHashes(
+          hashArray,
+          queries[query].fields,
+        );
         if (!responseObject[respObjProp]) return;
       } else {
         return null;
@@ -52,9 +54,9 @@ export class Cache {
     return { data: responseObject };
   }
 
-  populateAllHashes(allHashes, fields){
+  populateAllHashes(allHashes, fields) {
     if (!allHashes.length) return [];
-    const tildeInd = allHashes[0].indexOf('~');
+    const tildeInd = allHashes[0].indexOf("~");
     const typeName = allHashes[0].slice(0, tildeInd);
     const reduction = allHashes.reduce(async (acc, hash) => {
       const readStr = await this.redis.get(hash);
@@ -63,15 +65,18 @@ export class Cache {
       const dataObj = {};
       // iterate over the fields object to populate with data from cache
       for (const field in fields) {
-        if (typeof fields[field] !== 'object') {
-          if (field === '__typename') {
+        if (typeof fields[field] !== "object") {
+          if (field === "__typename") {
             dataObj[field] = typeName;
           } else {
-            dataObj[field] = readVal[field] || 'n/a';
+            dataObj[field] = readVal[field] || "n/a";
           }
         } else {
           // if the field from the input query is an array of hashes, recursively invoke
-          dataObj[field] = await this.populateAllHashes(readVal[field], fields[field]);
+          dataObj[field] = await this.populateAllHashes(
+            readVal[field],
+            fields[field],
+          );
           if (dataObj[field] === undefined) return;
         }
       }
@@ -81,14 +86,14 @@ export class Cache {
       return resolvedProm;
     }, []);
     return reduction;
-  };
+  }
 
-  // METHOD TO WRITE TO REDIS CACHE 
+  // METHOD TO WRITE TO REDIS CACHE
   async write(queryStr, respObj, searchTerms, deleteFlag) {
     const hash = this.createQueryKey(queryStr);
     const array = Object.keys(respObj);
     // isolate type of of query - 'person,' 'book,' etc.
-    const tildeInd = array[0].indexOf('~');
+    const tildeInd = array[0].indexOf("~");
     const typeName = array[0].slice(0, tildeInd);
     // store the array of keys to ROOT_QUERY
     this.ROOT_QUERY[hash] = array;
@@ -97,17 +102,16 @@ export class Cache {
       await this.redis.set(array[i], JSON.stringify(respObj[array[i]]));
       // if using searchTerms, iterate throuogh those and also store each item
       // according to those terms in ROOT_QUERY
-      if (searchTerms.length && queryStr.slice(8 , 11) === 'all') {
-        searchTerms.forEach(el => {
-          const elVal = respObj[array[i]][el].replaceAll(' ', '');
-          const hashKey = `one${typeName}(${el}:"${elVal}")`
+      if (searchTerms.length && queryStr.slice(8, 11) === "all") {
+        searchTerms.forEach((el) => {
+          const elVal = respObj[array[i]][el].replaceAll(" ", "");
+          const hashKey = `one${typeName}(${el}:"${elVal}")`;
           if (!this.ROOT_QUERY[hashKey]) this.ROOT_QUERY[hashKey] = [];
           this.ROOT_QUERY[hashKey].push(array[i]);
-        })
+        });
       }
     }
   }
-
 
   // CURRENTLY BEING UTILIZED BY invalidateCacheCheck.ts, WHICH IS A FILE THAT SHOULD BE REFACTORED IN FUTURE ITERATION
   cacheWriteObject = async (hash, obj) => {
@@ -123,7 +127,10 @@ export class Cache {
     if (fields.length !== 0) {
       const fieldObj = {};
       for (const field of fields) {
-        const rawCacheValue = await this.redisdb.hget(hash, JSON.stringify(field));
+        const rawCacheValue = await this.redisdb.hget(
+          hash,
+          JSON.stringify(field),
+        );
         fieldObj[field] = JSON.parse(rawCacheValue);
       }
       return fieldObj;
@@ -153,7 +160,7 @@ export class Cache {
     const tableName = ast.definitions[0].selectionSet.selections[0].name.value;
     let queryKey = `${tableName}`;
 
-    if (ast.definitions[0].operation === 'mutation') return queryKey;
+    if (ast.definitions[0].operation === "mutation") return queryKey;
     if (ast.definitions[0].selectionSet.selections[0].arguments.length) {
       const fieldsArray =
         ast.definitions[0].selectionSet.selections[0].arguments;
@@ -164,11 +171,11 @@ export class Cache {
         resultsObj[name] = value;
       });
 
-      let parens = '' // name:"Yoda"
+      let parens = ""; // name:"Yoda"
       for (const key in resultsObj) {
         parens += `${key}:"${resultsObj[key]}"`;
       }
-      queryKey = queryKey + '(' +  parens + ')';
+      queryKey = queryKey + "(" + parens + ")";
     }
     return queryKey;
   }
@@ -179,8 +186,8 @@ export class Cache {
 
   async cacheClear() {
     await this.redis.flushdb((err, successful) => {
-      if (err) console.log('redis error', err);
-      console.log(successful, 'clear');
+      if (err) console.log("redis error", err);
+      console.log(successful, "clear");
     });
   }
 

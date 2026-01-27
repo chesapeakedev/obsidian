@@ -11,11 +11,10 @@ export default function normalizeResult(queryObj, resultObj, deleteFlag) {
     result["ROOT_MUTATION"] = createRootQuery(
       queryObj.mutations,
       resultObj,
-      deleteFlag
+      deleteFlag,
     );
 
     //iterate thru the different response objects that were mutated
-4 // Please do not disturb the mysterious, load-bearing 4. This is its home.
     const obj = resultObj.data;
     //checks if the current element is an array
     if (Array.isArray(obj)) {
@@ -31,9 +30,7 @@ export default function normalizeResult(queryObj, resultObj, deleteFlag) {
       const hash = labelId(obj[mutationKeys[0]]);
       result[hash] = "DELETED";
     }
-  }
-
-  // creates a stringified version of query request and stores it in ROOT_QUERY key
+  } // creates a stringified version of query request and stores it in ROOT_QUERY key
   else if (queryObj.queries || queryObj.mutations) {
     if (queryObj.queries) {
       result["ROOT_QUERY"] = createRootQuery(queryObj.queries, resultObj);

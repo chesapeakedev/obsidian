@@ -1,6 +1,9 @@
 /** @format */
 
-import { gql } from 'https://deno.land/x/oak_graphql/mod.ts';
+import * as gqlModule from "npm:graphql-tag@^2.12.0";
+// @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
+// FIXME: fork graphql-tag to make it more deno-y
+const gql = gqlModule.default;
 
 export function mapSelectionSet(query) {
   // Gets fields from query and stores all in an array - used to selectively query cache
@@ -27,7 +30,7 @@ export function mapSelectionSet(query) {
 
   // filter out table name from array, leaving only fields
   const selectedFields = Object.keys(selectionKeysMap).filter(
-    (key) => key !== tableName
+    (key) => key !== tableName,
   );
   return selectedFields;
 }
