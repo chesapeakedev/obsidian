@@ -1,6 +1,7 @@
+// FIXME: delete this
 import {
-  ObsidianWrapper,
+  ObsidianProvider,
   useObsidian,
-} from './ObsidianWrapper/ObsidianWrapper.jsx';
+} from "./ObsidianProvider/ObsidianProvider.jsx";
 
-export { ObsidianWrapper, useObsidian };
+export { ObsidianProvider, useObsidian };

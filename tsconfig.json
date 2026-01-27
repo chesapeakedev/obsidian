@@ -3,9 +3,9 @@
   "compilerOptions": {
     "allowJs": true,
     "target": "ES2021",
-    "jsx": "react",
-    "noImplicitAny": false,
-    "module": "CommonJS",
+    "jsx": "react-jsx",
+    "noImplicitAny": true,
+    "module": "ESNext",
     "strict": true,
     "lib": ["dom"]
   },
@@ -13,6 +13,6 @@
   "exclude": [
     "./plugins/**/*",
     "./typings/**/*",
-    "./built/**/*" // This is what fixed it!
+    "./built/**/*"
   ]
 }

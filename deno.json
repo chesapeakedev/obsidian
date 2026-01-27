@@ -1,0 +1,79 @@
+{
+  "name": "@chesapeake/obsidian",
+  "version": "0.0.1",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "publish": {
+    "include": [
+      "./**/*.ts",
+      "./**/*.js",
+      "./**/*.jsx",
+      "./README.md"
+    ],
+    "exclude": [
+      "./test_files/**",
+      "./.github/**",
+      "./.vscode/**",
+      "./.sl/**",
+      "./assets/**",
+      "./Dockerfile",
+      "./docker-compose.yml",
+      "./CONTRIBUTING.md"
+    ]
+  },
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["deno.unstable", "deno.ns", "deno.window"]
+  },
+  "fmt": {
+    "useTabs": false,
+    "indentWidth": 2,
+    "lineWidth": 80,
+    "semiColons": true,
+    "singleQuote": false,
+    "include": [
+      "**/*.ts",
+      "**/*.js",
+      "**/*.md"
+    ],
+    "exclude": [
+      "**/node_modules",
+      "**/dist",
+      "**/build",
+      "**/target",
+      "**/.git",
+      "**/.sl"
+    ]
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    },
+    "include": [
+      "**/*.ts",
+      "**/*.js"
+    ],
+    "exclude": [
+      "**/node_modules",
+      "**/dist",
+      "**/build",
+      "**/target",
+      "**/.git",
+      "**/.sl"
+    ]
+  },
+  "tasks": {
+    "fmt": "deno fmt",
+    "fmt:check": "deno fmt --check",
+    "lint": "deno lint",
+    "lint:fix": "deno lint --fix",
+    "check": "deno fmt --check && deno lint && deno check **/*.ts"
+  },
+  "imports": {
+    "@graphql-tools/schema": "npm:@graphql-tools/schema@^10.0.31",
+    "graphql": "npm:graphql@^15.10.1",
+    "graphql-playground-html": "npm:graphql-playground-html@^1.6.30",
+    "graphql-tag": "npm:graphql-tag@^2.12.6"
+  }
+}

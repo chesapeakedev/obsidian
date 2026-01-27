@@ -3,12 +3,11 @@ import LFUCache from '../src/Browser/lfuBrowserCache.js';
 import LRUCache from '../src/Browser/lruBrowserCache.js';
 import WTinyLFUCache from "../src/Browser/wTinyLFUBrowserCache.js";
 import { insertTypenames } from '../src/Browser/insertTypenames.js';
-import { sha256 } from 'https://denopkg.com/chiefbiiko/sha256@v1.0.0/mod.ts';
 
 const cacheContext = React.createContext();
 
-function ObsidianWrapper(props) {
-  // props to be inputted by user when using the Obsdian Wrapper
+function ObsidianProvider(props) {
+  // props to be inputted by user when using the Obsidian Provider
   const { algo, capacity, searchTerms, useCache, persistQueries } = props;
   // if useCache hasn't been set, default caching to true
   let caching = true;
@@ -28,20 +27,26 @@ function ObsidianWrapper(props) {
     return cache;
   }
 
-  // once cache is initialized, cannot setCache
+  // once cache is initialized, cannot be changed
   // state for cache is initialized based on developer settings in wrapper
   // to successfully change between algo types for testing, kill the server, change the algo type in wrapper, then restart server
-  const [cache, setCache] = React.useState(setAlgoCap(algo, capacity));
+  const [cache] = React.useState(setAlgoCap(algo, capacity));
 
   // FOR DEVTOOL - listening for message from content.js to be able to send algo type and capacity to devtool
-  window.addEventListener('message', msg => {
-    if(msg.data.type === 'algocap'){
-      window.postMessage({
-        algo: algo ? algo : 'LFU',
-        capacity: capacity ? capacity : 2000
-      })
-    }
-  });
+  React.useEffect(() => {
+    const handleMessage = (msg) => {
+      if(msg.data.type === 'algocap'){
+        window.postMessage({
+          algo: algo ? algo : 'LFU',
+          capacity: capacity ? capacity : 2000
+        });
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [algo, capacity]);
 
   async function query(query, options = {}) {
     // FOR DEVTOOL - startTime is used to calculate the performance of the cache
@@ -110,7 +115,12 @@ function ObsidianWrapper(props) {
         // IF WE ARE USING PERSIST QUERIES
         if (persistQueries) {
           // SEND THE HASH
-          const hash = sha256(query, 'utf8', 'hex');
+          const encoder = new TextEncoder();
+          const data = encoder.encode(query);
+          const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+          const hash = Array.from(new Uint8Array(hashBuffer))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
           resJSON = await fetch(endpoint, {
             method: 'POST',
             headers: {
@@ -152,7 +162,9 @@ function ObsidianWrapper(props) {
         // update result in cache if cacheWrite is set to true
         if (cacheWrite && caching && resObj.data[Object.keys(resObj.data)[0]] !== null) {
           if (wholeQuery) cache.writeWholeQuery(query, deepResObj);
-          else if(resObj.data[Object.keys(resObj.data)[0]].length > cache.capacity) console.log('Please increase cache capacity');
+          else if(resObj.data[Object.keys(resObj.data)[0]].length > cache.capacity) {
+            console.warn('Cache capacity exceeded. Please increase cache capacity.');
+          }
           else cache.write(query, deepResObj, searchTerms);
         }
         const cacheMissResponseTime = Date.now() - startTime;
@@ -168,7 +180,8 @@ function ObsidianWrapper(props) {
 
         return resObj;
       } catch (e) {
-        console.log(e);
+        console.error('Query error:', e);
+        throw e;
       }
     }
   }
@@ -219,7 +232,6 @@ function ObsidianWrapper(props) {
           }
           // always write/over-write to cache (add/update)
           // GQL call to make changes and synchronize database
-          console.log('WriteThrough - false ', responseObj);
           const addOrUpdateMutationResponseTime = Date.now() - startTime;
           return responseObj;
         }
@@ -245,17 +257,17 @@ function ObsidianWrapper(props) {
 
         if(!responseObj.errors) cache.write(mutation, responseObj, searchTerms);
         // third behaviour just for normal update (no-delete, no update function)
-        console.log('WriteThrough - true ', responseObj);
         return responseObj;
       }
     } catch (e) {
-      console.log(e);
+      console.error('Mutation error:', e);
+      throw e;
     }
   }
   // Returning Provider React component that allows consuming components to subscribe to context changes
   return (
     <cacheContext.Provider
-      value={{ cache, setCache, query, clearCache, mutate }}
+      value={{ cache, query, clearCache, mutate }}
       {...props}
     />
   );
@@ -266,5 +278,5 @@ function useObsidian() {
   return React.useContext(cacheContext);
 }
 
-// Exporting of Custom wrapper and hook to access wrapper cache
-export { ObsidianWrapper, useObsidian };
+// Exporting of Custom provider and hook to access provider cache
+export { ObsidianProvider, useObsidian };

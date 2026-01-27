@@ -1,0 +1,27 @@
+name: "Publish to JSR"
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.40.0
+
+      - name: Publish to JSR
+        run: deno publish
+        env:
+          JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
