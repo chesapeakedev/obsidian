@@ -13,7 +13,9 @@
     "graphql": "npm:graphql@^15.10.1",
     "graphql-playground-html": "npm:graphql-playground-html@^1.6.30",
     "graphql-tag": "npm:graphql-tag@^2.12.6",
-    "pluralize": "jsr:@wei/pluralize@8.0.2"
+    "pluralize": "jsr:@wei/pluralize@8.0.2",
+    "@std/dotenv/load": "jsr:@std/dotenv@0.225.6/load",
+    "@akin01/deno-redis": "jsr:@akin01/deno-redis@0.1.1"
   },
   "compilerOptions": {
     "strict": true,

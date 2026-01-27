@@ -81,9 +81,9 @@ export class FrequencySketch {
       const offset = h & 1;
       index[i + 4] = block + offset + (i << 1);
     }
-    const incremented = this.incrementAt(index[4], index[0]) |
-      this.incrementAt(index[5], index[1]) |
-      this.incrementAt(index[6], index[2]) |
+    const incremented = this.incrementAt(index[4], index[0]) ||
+      this.incrementAt(index[5], index[1]) ||
+      this.incrementAt(index[6], index[2]) ||
       this.incrementAt(index[7], index[3]);
     if (incremented && (++this.size == this.sampleSize)) {
       this.reset();

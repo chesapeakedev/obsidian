@@ -1,7 +1,7 @@
 /** @format */
 
-import "https://deno.land/x/dotenv@v3.2.2/load.ts";
-import { connect } from "https://deno.land/x/redis@v0.29.2/mod.ts";
+import "@std/dotenv/load";
+import { connect } from "@akin01/deno-redis";
 import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
@@ -16,7 +16,7 @@ interface InitialCache {
 export class Cache {
   ROOT_QUERY: Record<string, unknown>;
   ROOT_MUTATION: Record<string, unknown>;
-  redis: unknown; // Redis client from deno.land/x/redis
+  redis: unknown; // Redis client from @akin01/deno-redis
 
   constructor(
     initialCache: InitialCache = {
@@ -34,8 +34,9 @@ export class Cache {
     policy: string,
     maxmemory: string,
   ): Promise<void> {
+    const hostname = Deno.env.get("REDIS_HOST") || "127.0.0.1";
     this.redis = await connect({
-      hostname: Deno.env.get("REDIS_HOST"),
+      hostname: hostname,
       port: port,
     });
     console.log("connecting to redis");
@@ -204,18 +205,14 @@ export class Cache {
       return fieldObj;
     } else {
       const redisClient = this.redis as {
-        hgetall: (hash: string) => Promise<string[]>;
+        hgetall: (hash: string) => Promise<Record<string, string>>;
       };
-      const objArray = await redisClient.hgetall(hash);
-      if (objArray.length == 0) return undefined;
-      const parsedArray = objArray.map((entry: string) => JSON.parse(entry));
+      const objRecord = await redisClient.hgetall(hash);
+      if (Object.keys(objRecord).length == 0) return undefined;
 
-      if (parsedArray.length % 2 !== 0) {
-        return undefined;
-      }
       const returnObj: Record<string, unknown> = {};
-      for (let i = 0; i < parsedArray.length; i += 2) {
-        returnObj[parsedArray[i]] = parsedArray[i + 1];
+      for (const [key, value] of Object.entries(objRecord)) {
+        returnObj[JSON.parse(key)] = JSON.parse(value);
       }
 
       return returnObj;
@@ -257,12 +254,15 @@ export class Cache {
   }
 
   async cacheClear(): Promise<void> {
-    await (this.redis as {
-      flushdb: (callback: (err: unknown, successful: unknown) => void) => void;
-    }).flushdb((err: unknown, successful: unknown) => {
-      if (err) console.log("redis error", err);
-      console.log(successful, "clear");
-    });
+    try {
+      const redisClient = this.redis as {
+        flushdb: () => Promise<string>;
+      };
+      const result = await redisClient.flushdb();
+      console.log(result, "clear");
+    } catch (err) {
+      console.log("redis error", err);
+    }
   }
 
   // functionality to stop polling

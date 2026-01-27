@@ -8,9 +8,9 @@
  *
  */
 
-import { Cache } from "../_test_variables/server/quickCacheLight.js";
+import { Cache } from "../../_test_variables/server/quickCacheLight.js";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
-import { test } from "../_test_variables/server/writeCache_variables.ts";
+import { test } from "../../_test_variables/server/writeCache_variables.ts";
 
 Rhum.testPlan("write method on Cache class", () => {
   Rhum.testSuite("write", () => {

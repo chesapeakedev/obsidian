@@ -8,7 +8,7 @@
  * Should test capacity
  */
 
-import LFUCache from "../../src/cache/lfuCache.ts";
+import LFUCache from "../../src/client/cache/lfuCache.ts";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test } from "../test_variables/lfuBrowserCache_variables.ts";
 

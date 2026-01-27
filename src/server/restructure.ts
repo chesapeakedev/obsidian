@@ -2,7 +2,7 @@ import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
 const gql = gqlModule.default as (query: string) => unknown;
-import { print, visit } from "graphql";
+import { type DocumentNode, print, visit } from "graphql";
 
 /**
  * The restructure function:
@@ -23,9 +23,7 @@ export function restructure(
   const variables = value.variables || {};
   const operationName = value.operationName;
 
-  let ast = gql(value.query) as {
-    definitions: Array<Record<string, unknown>>;
-  };
+  let ast = gql(value.query) as DocumentNode;
 
   let fragments: { [key: string]: unknown } = {};
   let containsFrags: boolean = false;
@@ -122,18 +120,16 @@ export function restructure(
 
   visit(ast, { leave: firstBuildVisitor });
 
-  ast = gql(print(visit(ast, { leave: firstRewriteVisitor }))) as {
-    definitions: Array<Record<string, unknown>>;
-  };
+  ast = gql(print(visit(ast, { leave: firstRewriteVisitor }))) as DocumentNode;
   visit(ast, { leave: checkFragmentationVisitor });
   while (containsFrags) {
     containsFrags = false;
     fragments = {};
     visit(ast, { enter: buildFragsVisitor });
 
-    ast = gql(print(visit(ast, { leave: firstRewriteVisitor }))) as {
-      definitions: Array<Record<string, unknown>>;
-    };
+    ast = gql(
+      print(visit(ast, { leave: firstRewriteVisitor })),
+    ) as DocumentNode;
     visit(ast, { leave: checkFragmentationVisitor });
 
     //if existingFrags has a key that fragments does not

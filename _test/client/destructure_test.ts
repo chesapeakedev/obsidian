@@ -4,8 +4,8 @@ import destructureQueries, {
   findClosingBrace,
   findQueryFields,
   findQueryStrings,
-} from "../src/client/destructure.ts";
-import { test } from "../_test_variables/client/destructure_variables.ts";
+} from "../../src/client/destructure.ts";
+import { test } from "../../_test_variables/client/destructure_variables.ts";
 
 Rhum.testPlan("destructure.ts", () => {
   Rhum.testSuite("destructure helper function tests", () => {

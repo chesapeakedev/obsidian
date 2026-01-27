@@ -10,9 +10,9 @@
  * Should return an array of field objects if all the elements are found in the cache.
  */
 
-import { Cache } from "../_test_variables/server/quickCacheLight.js";
+import { Cache } from "../../_test_variables/server/quickCacheLight.js";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
-import { test } from "../_test_variables/server/readCache_variables.ts";
+import { test } from "../../_test_variables/server/readCache_variables.ts";
 
 Rhum.testPlan("read method on Cache class", () => {
   Rhum.testSuite("read()", () => {

@@ -8,8 +8,9 @@
  *
  */
 
-import Cache from "../../src/Browser/CacheClassBrowser.js";
-import { Cache as _CacheServer } from "../../src/quickCache.ts";
+// Legacy test file - Browser cache class no longer exists
+// import Cache from "../../src/Browser/CacheClassBrowser.js";
+import { Cache as _CacheServer } from "../../src/server/cache/quickCache.ts";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test } from "../test_variables/writeCache_variables.ts";
 

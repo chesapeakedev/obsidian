@@ -218,7 +218,10 @@ export class ObsidianClient {
             mutationHeaders,
           );
           if (update && this.cache) {
-            update(this.cache, responseObj);
+            update(
+              this.cache as unknown as Record<string, unknown>,
+              responseObj,
+            );
           }
           if (cacheWrite && this.cache && responseObj.data) {
             const firstKey = Object.keys(responseObj.data)[0];
@@ -259,7 +262,7 @@ export class ObsidianClient {
 
         // Handle update function
         if (update) {
-          update(this.cache, responseObj);
+          update(this.cache as unknown as Record<string, unknown>, responseObj);
         }
 
         // Write to cache if no errors

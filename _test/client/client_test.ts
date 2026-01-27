@@ -10,7 +10,7 @@ import {
   assertEquals,
   assertExists,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { ObsidianClient } from "../src/client/ObsidianClient.ts";
+import { ObsidianClient } from "../../src/client/ObsidianClient.ts";
 
 // GitHub GraphQL API endpoint
 const GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql";

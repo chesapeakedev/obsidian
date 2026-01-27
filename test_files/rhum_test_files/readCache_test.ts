@@ -10,7 +10,8 @@
  * Should return an array of field objects if all the elements are found in the cache.
  */
 
-import Cache from "../../src/Browser/CacheClassBrowser.js";
+// Legacy test file - Browser cache class no longer exists
+// import Cache from "../../src/Browser/CacheClassBrowser.js";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test } from "../test_variables/readCache_variables.ts";
 

@@ -10,7 +10,7 @@ sync: ./repo_sync.sh
 	$(SHELL) ./repo_sync.sh
 
 # Note: lint also runs formatting to ensure code is properly formatted before linting
-lint: format lint_deno
+lint: format check_deno lint_deno
 	@echo ""
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo "✅ Lint check complete"

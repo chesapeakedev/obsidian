@@ -158,6 +158,8 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@akin01/deno-redis@0.1.1",
+      "jsr:@std/dotenv@0.225.6",
       "jsr:@wei/pluralize@8.0.2",
       "npm:@graphql-tools/schema@^10.0.31",
       "npm:graphql-playground-html@^1.6.30",

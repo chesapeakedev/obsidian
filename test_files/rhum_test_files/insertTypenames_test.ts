@@ -2,7 +2,7 @@ import {
   addTypenamesToFieldsStr,
   findClosingBrace,
   insertTypenames,
-} from "../../src/insertTypenames.ts";
+} from "../../src/client/insertTypenames.ts";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test } from "../test_variables/insertTypenames_variables.ts";
 

@@ -1,6 +1,6 @@
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
-import queryDepthLimiter from "../src/server/DoSSecurity.ts";
-import { test } from "../_test_variables/server/DoSSecurity_variables.ts";
+import queryDepthLimiter from "../../src/server/DoSSecurity.ts";
+import { test } from "../../_test_variables/server/DoSSecurity_variables.ts";
 
 Rhum.testPlan("DoSSecurity.ts", () => {
   Rhum.testSuite("Query depth limit NOT exceeded tests", () => {

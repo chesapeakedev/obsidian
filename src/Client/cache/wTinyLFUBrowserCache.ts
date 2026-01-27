@@ -1,4 +1,4 @@
-import { pluralize } from "jsr:@wei/pluralize@8.0.2";
+import pluralize from "pluralize";
 
 import normalizeResult from "../normalizeResult.ts";
 import destructureQueries from "../destructure.ts";
