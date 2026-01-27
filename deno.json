@@ -68,12 +68,14 @@
     "fmt:check": "deno fmt --check",
     "lint": "deno lint",
     "lint:fix": "deno lint --fix",
+    "test": "deno test --allow-env",
     "check": "deno fmt --check && deno lint && deno check **/*.ts"
   },
   "imports": {
     "@graphql-tools/schema": "npm:@graphql-tools/schema@^10.0.31",
     "graphql": "npm:graphql@^15.10.1",
     "graphql-playground-html": "npm:graphql-playground-html@^1.6.30",
-    "graphql-tag": "npm:graphql-tag@^2.12.6"
+    "graphql-tag": "npm:graphql-tag@^2.12.6",
+    "pluralize": "jsr:@wei/pluralize@8.0.2"
   }
 }

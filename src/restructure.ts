@@ -1,6 +1,8 @@
-import { gql } from "https://deno.land/x/oak_graphql@0.6.4/mod.ts";
-
-import { print, visit } from "https://deno.land/x/graphql_deno@v15.0.0/mod.ts";
+import * as gqlModule from "graphql-tag";
+// @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
+// FIXME: fork graphql-tag to make it more deno-y
+const gql = gqlModule.default as (query: string) => any;
+import { print, visit } from "graphql";
 
 /**
  * The restructure function:

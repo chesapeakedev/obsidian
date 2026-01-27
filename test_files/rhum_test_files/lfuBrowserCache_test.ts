@@ -8,10 +8,10 @@
  * Should test capacity
  */
 
-import LFUCache from "../../src/Browser/lfuBrowserCache.js";
+import LFUCache from "../../src/cache/lfuCache.ts";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test } from "../test_variables/lfuBrowserCache_variables.ts";
-import normalizeResult from "../../src/Browser/normalize.js";
+import normalizeResult from "../../src/normalizeResult.ts";
 
 Rhum.testPlan("LFU Browser Cache Testing", () => {
   Rhum.testSuite("write/read nested data object", () => {

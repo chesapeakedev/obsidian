@@ -1,4 +1,4 @@
-import destructureQueries from "./Browser/destructure.js";
+import destructureQueries from "./destructure.ts";
 
 // Interface representing shape of query object after destructuring
 interface queryObj {

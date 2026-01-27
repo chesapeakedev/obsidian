@@ -100,92 +100,72 @@ Deno.serve({ port: 8000 }, handler);
 
 ## Creating the Client
 
-```javascript
-import { ObsidianProvider } from "https://deno.land/x/obsidian/clientMod.ts";
+```typescript
+import { ObsidianClient } from "https://deno.land/x/obsidian/mod.ts";
 
-const App = () => {
-  return (
-    <ObsidianProvider>
-      <MovieApp />
-    </ObsidianProvider>
-  );
-};
+// Create a client instance
+const client = new ObsidianClient({
+  endpoint: "/graphql", // Your GraphQL endpoint
+  useCache: true, // Boolean indicating whether to use client-side cache, default to true
+  algo: "LRU", // Cache policy: "LFU" | "LRU" | "W-TinyLFU", default to "LFU"
+  capacity: 5000, // Numeric capacity of cache, default to 2000
+  persistQueries: true, // Boolean indicating whether to use persistent queries, default to false
+  searchTerms: ["title", "director", "genre"], // Optional parameter to set search terms of the data
+  headers: {
+    // Optional custom headers (e.g., for authentication)
+    Authorization: "Bearer your-token",
+  },
+});
 ```
 
 ## Making a Query
 
-```javascript
-<ObsidianProvider
-  useCache={true} // Boolean indicating whether to use client-side cache, default to true
-  algo="LRU" // String indicating cache policy to use for client-side cache, default to LFU. OTHER OPTIONS: W-Tiny-LFU, LRU
-  capacity="5000" // String indicating numeric capacity of cache, default to 2000
-  persistQueries={true} // Boolean indicating wheter to use persistent queries, default to false
-  searchTerms={["title", "director", "genre"]} // Optional parameter to set search terms of the data
->
-  <MovieApp />
-</ObsidianProvider>;
-```
+```typescript
+import { ObsidianClient } from "https://deno.land/x/obsidian/mod.ts";
 
-## Making a Query
+const client = new ObsidianClient({
+  endpoint: "/graphql",
+  useCache: true,
+});
 
-```javascript
-import { useObsidian } from 'https://deno.land/x/obsidian/clientMod.ts';
-
-const MovieApp = () => {
-  const { query } = useObsidian();
-  const [movies, setMovies] = (React as any).useState('');
-
-  const queryStr = `query {
-      movies {
-        id
-        title
-        releaseYear
-        genre
-      }
-    }
-  `;
-
-  return (
-    <h1>{movies}</h1>
-    <button
-      onClick={() => {
-        query(queryStr)
-        .then(resp => setMovies(resp.data))
-      }}
-    >Get Movies</button>
-  );
-};
-```
-
-## Making a Mutation
-
-```javascript
-import { useObsidian } from 'https://deno.land/x/obsidian/clientMod.ts';
-
-const MovieApp = () => {
-  const { mutate } = useObsidian();
-  const [movies, setMovies] = (React as any).useState('');
-
-  const queryStr = `mutation {
-    addMovie(input: {title: "Cruel Intentions", releaseYear: 1999, genre: "DRAMA" }) {
+const queryStr = `query {
+    movies {
       id
       title
       releaseYear
       genre
     }
   }
-  `;
+`;
 
-  return (
-    <h1>{movies}</h1>
-    <button
-      onClick={() => {
-        mutate(queryStr)
-        .then(resp => setMovies(resp.data))
-      }}
-    >Get Movies</button>
-  );
+// Execute query
+const response = await client.query(queryStr);
+console.log(response.data);
+```
+
+## Making a Mutation
+
+```typescript
+import { ObsidianClient } from "https://deno.land/x/obsidian/mod.ts";
+
+const client = new ObsidianClient({
+  endpoint: "/graphql",
+  useCache: true,
+});
+
+const mutationStr = `mutation {
+  addMovie(input: {title: "Cruel Intentions", releaseYear: 1999, genre: "DRAMA" }) {
+    id
+    title
+    releaseYear
+    genre
+  }
 }
+`;
+
+// Execute mutation
+const response = await client.mutate(mutationStr);
+console.log(response.data);
 ```
 
 ## Setting up Redis

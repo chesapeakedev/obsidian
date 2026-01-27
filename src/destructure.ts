@@ -9,7 +9,10 @@
  */
 
 // this function will destructure a query/mutation operation string into a query/mutation operation object
-export function destructureQueries(queryOperationStr, queryOperationVars) {
+export function destructureQueries(
+  queryOperationStr: string,
+  queryOperationVars?: Record<string, any>,
+): any {
   // Trims blocks of extra white space into a single white space for uniformity
   // of incoming queryOperationStrings
   queryOperationStr = queryOperationStr.replace(/\s+/g, " ").trim();
@@ -49,8 +52,8 @@ export function destructureQueries(queryOperationStr, queryOperationVars) {
 }
 
 // helper function to create an array of individual query strings from an operation string
-export function findQueryStrings(queryStrings) {
-  const result = [];
+export function findQueryStrings(queryStrings: string): string[] {
+  const result: string[] = [];
   let queryStartIndex = 1;
   let bracePairs = 0;
   let parensPairs = 0;
@@ -84,12 +87,16 @@ export function findQueryStrings(queryStrings) {
 }
 
 // helper function to create a queries object from an array of query strings
-export function createQueriesObj(arrayOfQueryStrings, typePropName, queryVars) {
+export function createQueriesObj(
+  arrayOfQueryStrings: string[],
+  typePropName: string,
+  queryVars?: Record<string, any>,
+): any {
   // define a new empty result object
-  const queriesObj = {};
+  const queriesObj: any = {};
   queriesObj[typePropName] = [];
   // for each query string
-  arrayOfQueryStrings.forEach((queryStr) => {
+  arrayOfQueryStrings.forEach((queryStr: string) => {
     // split the query string into multiple parts
     const queryObj = splitUpQueryStr(queryStr, queryVars);
     // recursively convert the fields string to a fields object and update the fields property
@@ -100,10 +107,14 @@ export function createQueriesObj(arrayOfQueryStrings, typePropName, queryVars) {
 
   return queriesObj;
 }
+
 // helper function that returns an object with a query string split into multiple parts
-export function splitUpQueryStr(queryStr, queryVars) {
+export function splitUpQueryStr(
+  queryStr: string,
+  queryVars?: Record<string, any>,
+): any {
   // creates new queryObj
-  const queryObj = {};
+  const queryObj: any = {};
   let parensPairs = 0;
   const argsStartIndex = queryStr.indexOf("(");
   const firstBraceIndex = queryStr.indexOf("{");
@@ -163,13 +174,17 @@ export function splitUpQueryStr(queryStr, queryVars) {
       return queryObj;
     }
   }
+  return queryObj;
 }
 
 // helper function to manipulate query args string by replacing variables
-export function replaceQueryVariables(queryArgs, variables) {
+export function replaceQueryVariables(
+  queryArgs: string,
+  variables: Record<string, any>,
+): string {
   // indexes of start ($) & end of variable name
-  let varStartIndex;
-  let varEndIndex;
+  let varStartIndex: number | undefined;
+  let varEndIndex: number | undefined;
 
   for (let i = 0; i < queryArgs.length; i += 1) {
     const char = queryArgs[i];
@@ -181,7 +196,7 @@ export function replaceQueryVariables(queryArgs, variables) {
 
     // if we have found the start and end positions of a variable in the query
     // args string
-    if (varStartIndex && varEndIndex && variables) {
+    if (varStartIndex !== undefined && varEndIndex !== undefined && variables) {
       // find the value of that variable by looking it up against the
       // "variables" object
       const varName = queryArgs.slice(varStartIndex + 1, varEndIndex);
@@ -194,7 +209,7 @@ export function replaceQueryVariables(queryArgs, variables) {
 
         // reset i after replacing the variable with its value
         /* NOTE: the value of the variable COULD be bigger than the variable itself */
-        i -= varName.length - varValue.length;
+        i -= varName.length - String(varValue).length;
       }
 
       // reset start and end indexes to look for more variables
@@ -207,8 +222,8 @@ export function replaceQueryVariables(queryArgs, variables) {
 }
 
 // helper function to recursively convert the fields string to a fields object
-export function findQueryFields(fieldsStr) {
-  const fieldsObj = {};
+export function findQueryFields(fieldsStr: string): any {
+  const fieldsObj: any = {};
   let fieldCache = "";
   let foundEndOfFieldName = false;
   // starts at index 1 to skip first open brace
@@ -249,7 +264,7 @@ export function findQueryFields(fieldsStr) {
 }
 
 // helper function to find the partner closing brace
-export function findClosingBrace(str, index) {
+export function findClosingBrace(str: string, index: number): number {
   let bracePairs = 0;
   // skips ahead 1 index to skip first brace
   for (let i = index + 1; i < str.length; i += 1) {
@@ -258,21 +273,22 @@ export function findClosingBrace(str, index) {
     if (char === "{") bracePairs += 1;
     if (char === "}") bracePairs -= 1;
   }
+  return str.length - 1; // fallback
 }
 
 // helper function to find fragments
-export function destructureQueriesWithFragments(queryOperationStr) {
+export function destructureQueriesWithFragments(queryOperationStr: string): string {
   // create a copy of the input to mutate
   let queryCopy = queryOperationStr;
   // declare an array to hold all fragments
-  const fragments = [];
+  const fragments: string[] = [];
   // helper function to separate fragment from query/mutation
-  const separateFragments = (queryCopy) => {
+  const separateFragments = (queryCopy: string): string => {
     const startFragIndex = queryCopy.indexOf("fragment");
     const startFragCurly = queryCopy.indexOf("{", startFragIndex);
-    let endFragCurly;
-    const stack = ["{"];
-    const curlsAndParens = {
+    let endFragCurly: number = 0;
+    const stack: string[] = ["{"];
+    const curlsAndParens: Record<string, string> = {
       "}": "{",
       ")": "(",
     };
@@ -306,12 +322,12 @@ export function destructureQueriesWithFragments(queryOperationStr) {
 
   queryCopy = queryCopy.trim();
 
-  const fragmentObj = {};
+  const fragmentObj: Record<string, string> = {};
 
   // Note: Could be optimized to avoid iterating through whole query string to find fragment name.
   // Could use string index comparison (while string index < index of '{') for better performance.
   // store each fragment name with its corresponding fields in fragmentObj
-  fragments.forEach((fragment) => {
+  fragments.forEach((fragment: string) => {
     const index = fragment.indexOf("{");
     const words = fragment.split(" ");
     const fragmentFields = fragment.slice(index + 1, fragment.length - 1);
@@ -321,7 +337,7 @@ export function destructureQueriesWithFragments(queryOperationStr) {
 
   const fragmentObjKeys = Object.keys(fragmentObj);
 
-  fragmentObjKeys.forEach((fragment) => {
+  fragmentObjKeys.forEach((fragment: string) => {
     queryCopy = queryCopy.replaceAll(`...${fragment}`, fragmentObj[fragment]);
   });
 
@@ -330,13 +346,16 @@ export function destructureQueriesWithFragments(queryOperationStr) {
 
 // handles query string with directives (@include, @skip) by keeping or omitting
 // fields depending on the value of the variable passed in
-export function destructureQueriesWithDirectives(queryStr, queryVars) {
+export function destructureQueriesWithDirectives(
+  queryStr: string,
+  queryVars?: Record<string, any>,
+): string {
   // starting point of iteration over queryStr
   let startIndex = queryStr.indexOf("{");
 
   // the starting and ending indices of arguments in queryStr
-  let argStartIndex;
-  let argEndIndex;
+  let argStartIndex: number | undefined;
+  let argEndIndex: number | undefined;
 
   // iterate over queryStr to replace variables in arguments
   for (let i = startIndex; i < queryStr.length; i += 1) {
@@ -347,9 +366,9 @@ export function destructureQueriesWithDirectives(queryStr, queryVars) {
 
     // if the start and end positions for a query argument have been found,
     // replace variables in that argument
-    if (argStartIndex && argEndIndex) {
+    if (argStartIndex !== undefined && argEndIndex !== undefined) {
       const oldQueryArgs = queryStr.slice(argStartIndex, argEndIndex + 1);
-      const newQueryArgs = replaceQueryVariables(oldQueryArgs, queryVars);
+      const newQueryArgs = replaceQueryVariables(oldQueryArgs, queryVars || {});
 
       queryStr = queryStr.replace(oldQueryArgs, newQueryArgs);
 
@@ -372,13 +391,13 @@ export function destructureQueriesWithDirectives(queryStr, queryVars) {
 
   // Boolean that indicates whether the field to which a directive is attached
   // to should be included in or removed from the query string
-  let includeQueryField;
+  let includeQueryField: boolean | undefined;
 
   // start and end positions of a directive (e.g.  --> @include (if: true) <-- )
   /* NOTE: directives (from '@' to the closest closing paren) will always be
     deleted from the query string, regardless of whether the value of the variable is true or false */
-  let startDeleteIndex;
-  let endDeleteIndex;
+  let startDeleteIndex: number | undefined;
+  let endDeleteIndex: number | undefined;
 
   // delete directives from queryStr, as well as the field itself depending
   // on the value of the variable in the directive
@@ -393,7 +412,7 @@ export function destructureQueriesWithDirectives(queryStr, queryVars) {
     }
 
     // check value of the variable in the directive (to the right of the ':')
-    if (startDeleteIndex && char === ":") {
+    if (startDeleteIndex !== undefined && char === ":") {
       // @skip directives will do the opposite of @include directives
       if (queryStr.slice(i, i + 6).indexOf("true") !== -1) {
         includeQueryField = skipFlag ? false : true;
@@ -404,7 +423,7 @@ export function destructureQueriesWithDirectives(queryStr, queryVars) {
 
     // if the start and end positions for a directive is found, delete it
     // (from the '@' to the closest closing paren)
-    if (startDeleteIndex && endDeleteIndex) {
+    if (startDeleteIndex !== undefined && endDeleteIndex !== undefined) {
       const directive = queryStr.slice(startDeleteIndex, endDeleteIndex + 2);
 
       queryStr = queryStr.replace(directive, "");

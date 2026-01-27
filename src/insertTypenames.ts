@@ -1,7 +1,7 @@
 /** @format */
 
 // this function will insert __typename meta fields into a querystring
-export function insertTypenames(queryOperationStr) {
+export function insertTypenames(queryOperationStr: string): string {
   let newQueryStr = "";
   // removes extra whitespace
   const queryStr = queryOperationStr.replace(/\s\s+/g, " ").trim();
@@ -36,7 +36,7 @@ export function insertTypenames(queryOperationStr) {
 }
 
 // helper function to add typenames to fieldsStr where needed
-export function addTypenamesToFieldsStr(fieldsStr) {
+export function addTypenamesToFieldsStr(fieldsStr: string): string {
   let newFieldsStr = fieldsStr;
   let currentOpenBrace = 0;
   let isAnotherOpenBrace = true;
@@ -66,7 +66,7 @@ export function addTypenamesToFieldsStr(fieldsStr) {
 }
 
 // helper function to find the partner closing brace
-export function findClosingBrace(str, index) {
+export function findClosingBrace(str: string, index: number): number {
   let bracePairs = 0;
   // skips ahead 1 index to skip first brace
   for (let i = index + 1; i < str.length; i += 1) {
@@ -75,4 +75,5 @@ export function findClosingBrace(str, index) {
     if (char === "{") bracePairs += 1;
     if (char === "}") bracePairs -= 1;
   }
+  return str.length - 1; // fallback
 }

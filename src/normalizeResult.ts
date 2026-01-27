@@ -2,9 +2,13 @@
 
 // Normalizes responses using the query object from destructure and the response object from
 // the graphql request
-export default function normalizeResult(queryObj, resultObj, deleteFlag) {
+export default function normalizeResult(
+  queryObj: any,
+  resultObj: any,
+  deleteFlag?: boolean,
+): Record<string, any> {
   // Object to hold normalized obj
-  const result = {};
+  const result: Record<string, any> = {};
   // checks if there is a delete mutation
   if (deleteFlag) {
     //creates the ROOT_MUTATION hash that is being deleted
@@ -19,7 +23,7 @@ export default function normalizeResult(queryObj, resultObj, deleteFlag) {
     //checks if the current element is an array
     if (Array.isArray(obj)) {
       //iterates thru the array of objects and stores the hash in the result object with 'DELETE' as value
-      obj.forEach((ele) => {
+      obj.forEach((ele: any) => {
         const mutationKeys = Object.keys(ele);
         const hash = labelId(ele[mutationKeys[0]]);
         result[hash] = "DELETED";
@@ -68,9 +72,13 @@ export default function normalizeResult(queryObj, resultObj, deleteFlag) {
 }
 
 // creates the hashes for query requests and stores the reference hash that will be stored in result
-function createRootQuery(queryObjArr, resultObj) {
-  const output = {};
-  queryObjArr.forEach((query) => {
+function createRootQuery(
+  queryObjArr: any[],
+  resultObj: any,
+  deleteFlag?: boolean,
+): Record<string, any> {
+  const output: Record<string, any> = {};
+  queryObjArr.forEach((query: any) => {
     // if query has an alias declare it
     const alias = query.alias ?? null;
     const name = query.name;
@@ -81,8 +89,8 @@ function createRootQuery(queryObjArr, resultObj) {
     // and store the hash of that response in an array
 
     if (Array.isArray(result)) {
-      const arrOfHashes = [];
-      result.forEach((obj) => {
+      const arrOfHashes: string[] = [];
+      result.forEach((obj: any) => {
         arrOfHashes.push(labelId(obj));
       });
 
@@ -96,7 +104,7 @@ function createRootQuery(queryObjArr, resultObj) {
 }
 
 //returns a hash value pair of each response obj passed in
-function createHash(obj, output = {}) {
+function createHash(obj: any, output: Record<string, any> = {}): Record<string, any> {
   const hash = labelId(obj);
   //if output doesnt have a key of hash create a new obj with that hash key
   if (!output[hash]) output[hash] = {};
@@ -119,7 +127,7 @@ function createHash(obj, output = {}) {
     // store the output of the recursive call in output
     else {
       output[hash][field] = [];
-      obj[field].forEach((obj) => {
+      obj[field].forEach((obj: any) => {
         const arrayHash = labelId(obj);
         output[hash][field].push(arrayHash);
         output = createHash(obj, output);
@@ -130,7 +138,7 @@ function createHash(obj, output = {}) {
   return output;
 }
 
-function labelId(obj) {
+function labelId(obj: any): string {
   const id = obj.id || obj.ID || obj._id || obj._ID || obj.Id || obj._Id;
   return obj.__typename + "~" + id;
 }

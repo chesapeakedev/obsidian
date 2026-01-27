@@ -1,9 +1,11 @@
-export function FrequencySketch() {
-  const RESET_MASK = 0x77777777; // 011101110111... 0001 0000 0000 0001 0000
-  const ONE_MASK = 0x11111111; //  0001 0001 0001
+export class FrequencySketch {
+  private readonly RESET_MASK = 0x77777777; // 011101110111... 0001 0000 0000 0001 0000
+  private readonly ONE_MASK = 0x11111111; //  0001 0001 0001
 
-  let sampleSize, blockMask, size;
-  let table = [];
+  private sampleSize: number = 0;
+  private blockMask: number = 0;
+  private size: number = 0;
+  private table: number[][] = [];
 
   /**
    * Initializes and increases the capacity of this FrequencySketch instance
@@ -12,40 +14,41 @@ export function FrequencySketch() {
    *
    * @param maxSize cache capacity
    */
-  this.updateCapacity = function (maxSize) {
+  updateCapacity(maxSize: number): void {
     const max = Math.floor(maxSize); //to ensure it's an integer
-    if (table.length >= max) return;
+    if (this.table.length >= max) return;
 
-    table = Array(Math.max(nearestPowerOfTwo(max), 8)).fill().map(() =>
+    this.table = Array(Math.max(nearestPowerOfTwo(max), 8)).fill(0).map(() =>
       Array(2).fill(0)
     );
-    sampleSize = (maxSize === 0) ? 10 : (10 * max);
-    blockMask = (table.length >>> 3) - 1;
+    this.sampleSize = (maxSize === 0) ? 10 : (10 * max);
+    this.blockMask = (this.table.length >>> 3) - 1;
 
-    if (sampleSize <= 0) sampleSize = Number.MAX_SAFE_INTEGER;
-    size = 0;
-  };
+    if (this.sampleSize <= 0) this.sampleSize = Number.MAX_SAFE_INTEGER;
+    this.size = 0;
+  }
+
   /**
    * Returns true if the sketch has not been initialized, indicating updateCapcity
    * needs to be called before tracking frequencies.
    */
-  const isNotInitialized = () => {
-    return table.length === 0;
-  };
+  private isNotInitialized(): boolean {
+    return this.table.length === 0;
+  }
+
   /**
    * Returns the estimated frequency of an element, up to the maximum(15).
    *
    * @param el the element being counted
    * @return the estimated frequency - required to be nonnegative
    */
-
-  this.frequency = function (el) {
-    if (isNotInitialized()) return 0;
+  frequency(el: string): number {
+    if (this.isNotInitialized()) return 0;
     const count = Array(4);
 
     const blockHash = supphash(hashCode(el));
     const counterHash = rehash(blockHash);
-    const block = (blockHash & blockMask) << 3;
+    const block = (blockHash & this.blockMask) << 3;
 
     for (let i = 0; i < 4; i++) {
       const h = counterHash >>> (i << 3);
@@ -53,22 +56,22 @@ export function FrequencySketch() {
       const row = index % 2;
       const offset = h & 1;
       count[i] =
-        (table[block + offset + (i << 1)][row] >>> ((index >> 1) << 2)) & 15;
+        (this.table[block + offset + (i << 1)][row] >>> ((index >> 1) << 2)) & 15;
     }
     return Math.min(...count);
-  };
+  }
 
   /**
    * Increment the frequency of the element if it does not exceed the maximum(15)
    * @param el element to add
    */
-  this.increment = function (el) {
-    if (isNotInitialized()) return;
+  increment(el: string): void {
+    if (this.isNotInitialized()) return;
 
     const index = Array(8);
     const blockHash = supphash(hashCode(el));
     const counterHash = rehash(blockHash);
-    const block = (blockHash & blockMask) << 3;
+    const block = (blockHash & this.blockMask) << 3;
     //in case we get that [Object object] bs
 
     for (let i = 0; i < 4; i++) {
@@ -77,14 +80,14 @@ export function FrequencySketch() {
       const offset = h & 1;
       index[i + 4] = block + offset + (i << 1);
     }
-    const incremented = incrementAt(index[4], index[0]) |
-      incrementAt(index[5], index[1]) |
-      incrementAt(index[6], index[2]) |
-      incrementAt(index[7], index[3]);
-    if (incremented && (++size == sampleSize)) {
-      reset();
+    const incremented = this.incrementAt(index[4], index[0]) |
+      this.incrementAt(index[5], index[1]) |
+      this.incrementAt(index[6], index[2]) |
+      this.incrementAt(index[7], index[3]);
+    if (incremented && (++this.size == this.sampleSize)) {
+      this.reset();
     }
-  };
+  }
 
   /**
    * Increments the specified counter by 1 if it is not already at the maximum value (15).
@@ -93,53 +96,54 @@ export function FrequencySketch() {
    * @param j the counter to increment
    * @return if incremented
    */
-  const incrementAt = (i, j) => {
+  private incrementAt(i: number, j: number): boolean {
     const row = j % 2;
     const offset = (j >> 1) << 2;
     const mask = 15 << offset;
-    if ((table[i][row] & mask) != mask) { //if curr counter is not at maximum(15)
-      table[i][row] += 1 << offset;
+    if ((this.table[i][row] & mask) != mask) { //if curr counter is not at maximum(15)
+      this.table[i][row] += 1 << offset;
       return true;
     }
     return false;
-  };
+  }
 
   /** Reduces every counter by half of its original value. */
-  const reset = () => {
+  private reset(): void {
     let count = 0;
-    for (let i = 0; i < table.length; i++) {
-      count += bitCount(table[i][0] & ONE_MASK) +
-        bitCount(table[i][1] & ONE_MASK);
-      table[i][0] = (table[i][0] >>> 1) & RESET_MASK;
-      table[i][1] = (table[i][1] >>> 1) & RESET_MASK;
+    for (let i = 0; i < this.table.length; i++) {
+      count += bitCount(this.table[i][0] & this.ONE_MASK) +
+        bitCount(this.table[i][1] & this.ONE_MASK);
+      this.table[i][0] = (this.table[i][0] >>> 1) & this.RESET_MASK;
+      this.table[i][1] = (this.table[i][1] >>> 1) & this.RESET_MASK;
     }
-    size = (size - (count >>> 2)) >>> 1;
-  };
+    this.size = (this.size - (count >>> 2)) >>> 1;
+  }
+
   /** Applies a supplemental hash functions for less collisions. */
-  const supphash = (x) => {
+  private supphash(x: number): number {
     x ^= x >> 17;
     x *= 0xed5ad4bb;
     x ^= x >> 11;
     x *= 0xac4c1b51;
     x ^= x >> 15;
     return x;
-  };
+  }
 
   /** Applies another round of hashing to acheive three round hashing. */
-  const rehash = (x) => {
+  private rehash(x: number): number {
     x *= 0x31848bab;
     x ^= x >> 14;
     return x;
-  };
+  }
 
-  const nearestPowerOfTwo = (num) => {
+  private nearestPowerOfTwo(num: number): number {
     const exp = Math.floor(Math.log2(num));
     if (Math.pow(2, exp) === num) return num;
 
     return Math.pow(2, exp + 1);
-  };
+  }
 
-  const hashCode = (input) => {
+  private hashCode(input: string): number {
     let hash, code;
     hash = 0;
     for (let i = 0; i < input.length; i++) {
@@ -148,16 +152,13 @@ export function FrequencySketch() {
       hash = hash & hash;
     }
     return hash;
-  };
+  }
 
   /** bitcounting for 32-bit integers (reference: https://graphics.stanford.edu/~seander/bithacks.html) */
-
-  const bitCount = (n) => {
+  private bitCount(n: number): number {
     n = n - ((n >> 1) & 0x55555555);
     n = (n & 0x33333333) + ((n >> 2) & 0x33333333);
     const count = ((n + (n >> 4) & 0xF0F0F0F) * 0x1010101) >> 24;
     return count;
-  };
+  }
 }
-
-FrequencySketch();

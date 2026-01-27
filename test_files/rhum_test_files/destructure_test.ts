@@ -5,7 +5,7 @@ import destructureQueries, {
   findQueryFields,
   findQueryStrings,
   splitUpQueryStr,
-} from "../../src/Browser/destructure.js";
+} from "../../src/destructure.ts";
 import { test } from "../test_variables/destructure_variables.ts";
 
 Rhum.testPlan("destructure.ts", () => {

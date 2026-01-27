@@ -1,13 +1,13 @@
-import { graphql } from "npm:graphql@^15.0.0";
-import { makeExecutableSchema } from "npm:@graphql-tools/schema@^10.0.0";
-import { renderPlaygroundPage } from "npm:graphql-playground-html";
-import { Cache } from "./quickCache.js";
+import { graphql } from "graphql";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { renderPlaygroundPage } from "graphql-playground-html";
+import { Cache } from "./quickCache.ts";
 import queryDepthLimiter from "./DoSSecurity.ts";
 import { restructure } from "./restructure.ts";
 import { normalizeObject } from "./normalize.ts";
 import { invalidateCache, isMutation } from "./invalidateCacheCheck.ts";
-import { mapSelectionSet } from "./mapSelections.js";
-import { HashTable } from "./queryHash.js";
+import { mapSelectionSet } from "./mapSelections.ts";
+import { HashTable } from "./queryHash.ts";
 
 export interface ObsidianServiceOptions {
   path?: string;

@@ -1,9 +1,35 @@
 /** @format */
-import { gql } from "https://deno.land/x/oak_graphql@0.6.4/mod.ts";
-import { visit } from "https://deno.land/x/graphql_deno@v15.0.0/mod.ts";
+import * as gqlModule from "graphql-tag";
+// @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
+// FIXME: fork graphql-tag to make it more deno-y
+const gql = gqlModule.default as (query: string) => any;
+import { visit } from "graphql";
 import { scope } from "./Obsidian.ts";
-import { Cache } from "./quickCache.js";
-import { deepEqual } from "./utils.js";
+import { Cache } from "./cache/quickCache.ts";
+
+function isObject(object: any): boolean {
+  return object != null && typeof object === "object";
+}
+
+export function deepEqual(object1: any, object2: any): boolean {
+  const keys1 = Object.keys(object1);
+  const keys2 = Object.keys(object2);
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+  for (const key of keys1) {
+    const val1 = object1[key];
+    const val2 = object2[key];
+    const areObjects = isObject(val1) && isObject(val2);
+    if (
+      areObjects && !deepEqual(val1, val2) ||
+      !areObjects && val1 !== val2
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
 
 // const cache = new Cache();
 

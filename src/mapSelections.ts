@@ -1,18 +1,18 @@
 /** @format */
 
-import * as gqlModule from "npm:graphql-tag@^2.12.0";
+import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
-const gql = gqlModule.default;
+const gql = gqlModule.default as (query: string) => any;
 
-export function mapSelectionSet(query) {
+export function mapSelectionSet(query: string): string[] {
   // Gets fields from query and stores all in an array - used to selectively query cache
-  const selectionKeysMap = {};
+  const selectionKeysMap: Record<string, string> = {};
   const ast = gql(query);
   const selections = ast.definitions[0].selectionSet.selections;
   const tableName = selections[0].name.value;
 
-  const recursiveMap = (recurseSelections) => {
+  const recursiveMap = (recurseSelections: any[]): void => {
     for (const selection of recurseSelections) {
       if (selection.name && selection.name.value) {
         selectionKeysMap[selection.name.value] = selection.name.value;
