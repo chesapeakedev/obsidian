@@ -423,9 +423,9 @@ obsidian/
 
 ### Testing
 
-- Test files located in `test_files/rhum_test_files/`
-- Test variables in `test_files/test_variables/`
-- Use Rhum testing framework
+- Test files located in `_test/` directory
+- Test variables in `_test_variables/` directory
+- Use Deno's built-in testing framework
 
 ### Adding New Features
 
@@ -472,7 +472,10 @@ obsidian/
 **Running Tests:**
 
 ```bash
-deno test test_files/rhum_test_files/
+deno test --allow-env --allow-net
+# Or run specific test suites:
+deno test --allow-env --allow-net _test/server/
+deno test --allow-net --allow-env _test/client/
 ```
 
 **Building:**

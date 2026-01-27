@@ -1,89 +1,63 @@
-import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
+import { assertEquals, assertThrows } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import queryDepthLimiter from "../../src/server/DoSSecurity.ts";
 import { test } from "../../_test_variables/server/DoSSecurity_variables.ts";
 
-Rhum.testPlan("DoSSecurity.ts", () => {
-  Rhum.testSuite("Query depth limit NOT exceeded tests", () => {
-    Rhum.testCase(
-      "Test query depth of 2 does not exceed allowable depth 2",
-      () => {
-        const results = queryDepthLimiter(test.DEPTH_2_QUERY, 2);
-        Rhum.asserts.assertEquals(undefined, results);
-      },
-    );
-    Rhum.testCase(
-      "Test mutation depth of 2 does not exceed allowable depth of 2",
-      () => {
-        const results = queryDepthLimiter(test.DEPTH_2_MUTATION, 2);
-        Rhum.asserts.assertEquals(undefined, results);
-      },
-    );
-  });
+Deno.test("DoSSecurity.ts - Query depth limit NOT exceeded tests - Test query depth of 2 does not exceed allowable depth 2", () => {
+  const results = queryDepthLimiter(test.DEPTH_2_QUERY, 2);
+  assertEquals(undefined, results);
+});
 
-  Rhum.testSuite("Query/mutation depth limit IS EXCEEDED tests", () => {
-    Rhum.testCase("Test query depth 2 should exceed depth limit of 1", () => {
-      Rhum.asserts.assertThrows(
-        () => {
-          queryDepthLimiter(test.DEPTH_2_QUERY, 1);
-        },
-        Error,
-        "Security Error: Query depth exceeded maximum query depth limit",
-      );
-    });
-    Rhum.testCase(
-      "Test mutation depth 2 should exceed depth limit of 1",
-      () => {
-        Rhum.asserts.assertThrows(
-          () => {
-            queryDepthLimiter(test.DEPTH_2_MUTATION, 1);
-          },
-          Error,
-          "Security Error: Query depth exceeded maximum mutation depth limit",
-        );
-      },
-    );
-  });
+Deno.test("DoSSecurity.ts - Query depth limit NOT exceeded tests - Test mutation depth of 2 does not exceed allowable depth of 2", () => {
+  const results = queryDepthLimiter(test.DEPTH_2_MUTATION, 2);
+  assertEquals(undefined, results);
+});
 
-  Rhum.testSuite("Query depth limit NOT exceeded, multiple query tests", () => {
-    Rhum.testCase(
-      "Test multiple queries of depth 2 should not exceed allowable depth 2",
-      () => {
-        const results = queryDepthLimiter(test.MULTIPLE_DEPTH_2_QUERY, 2);
-        Rhum.asserts.assertEquals(undefined, results);
-      },
-    );
-    Rhum.testCase(
-      "Test multiple mutations of depth 2 should not exceed allowable depth 2",
-      () => {
-        const results = queryDepthLimiter(test.MULTIPLE_DEPTH_2_MUTATION, 2);
-        Rhum.asserts.assertEquals(undefined, results);
-      },
-    );
-  });
-
-  Rhum.testSuite(
-    "Multiple query/mutation depth limit IS EXCEEDED tests",
+Deno.test("DoSSecurity.ts - Query/mutation depth limit IS EXCEEDED tests - Test query depth 2 should exceed depth limit of 1", () => {
+  assertThrows(
     () => {
-      Rhum.testCase("Test multiple query depth should be exceeded", () => {
-        Rhum.asserts.assertThrows(
-          () => {
-            queryDepthLimiter(test.MULTIPLE_DEPTH_2_QUERY, 1);
-          },
-          Error,
-          "Security Error: Query depth exceeded maximum query depth limit",
-        );
-      });
-      Rhum.testCase("Test multiple mutation depth should be exceeded", () => {
-        Rhum.asserts.assertThrows(
-          () => {
-            queryDepthLimiter(test.MULTIPLE_DEPTH_2_MUTATION, 1);
-          },
-          Error,
-          "Security Error: Query depth exceeded maximum mutation depth limit",
-        );
-      });
+      queryDepthLimiter(test.DEPTH_2_QUERY, 1);
     },
+    Error,
+    "Security Error: Query depth exceeded maximum query depth limit",
   );
 });
 
-Rhum.run();
+Deno.test("DoSSecurity.ts - Query/mutation depth limit IS EXCEEDED tests - Test mutation depth 2 should exceed depth limit of 1", () => {
+  assertThrows(
+    () => {
+      queryDepthLimiter(test.DEPTH_2_MUTATION, 1);
+    },
+    Error,
+    "Security Error: Query depth exceeded maximum mutation depth limit",
+  );
+});
+
+Deno.test("DoSSecurity.ts - Query depth limit NOT exceeded, multiple query tests - Test multiple queries of depth 2 should not exceed allowable depth 2", () => {
+  const results = queryDepthLimiter(test.MULTIPLE_DEPTH_2_QUERY, 2);
+  assertEquals(undefined, results);
+});
+
+Deno.test("DoSSecurity.ts - Query depth limit NOT exceeded, multiple query tests - Test multiple mutations of depth 2 should not exceed allowable depth 2", () => {
+  const results = queryDepthLimiter(test.MULTIPLE_DEPTH_2_MUTATION, 2);
+  assertEquals(undefined, results);
+});
+
+Deno.test("DoSSecurity.ts - Multiple query/mutation depth limit IS EXCEEDED tests - Test multiple query depth should be exceeded", () => {
+  assertThrows(
+    () => {
+      queryDepthLimiter(test.MULTIPLE_DEPTH_2_QUERY, 1);
+    },
+    Error,
+    "Security Error: Query depth exceeded maximum query depth limit",
+  );
+});
+
+Deno.test("DoSSecurity.ts - Multiple query/mutation depth limit IS EXCEEDED tests - Test multiple mutation depth should be exceeded", () => {
+  assertThrows(
+    () => {
+      queryDepthLimiter(test.MULTIPLE_DEPTH_2_MUTATION, 1);
+    },
+    Error,
+    "Security Error: Query depth exceeded maximum mutation depth limit",
+  );
+});

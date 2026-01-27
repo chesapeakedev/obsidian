@@ -1,4 +1,4 @@
-import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
+import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import destructureQueries, {
   createQueriesObj,
   findClosingBrace,
@@ -7,141 +7,108 @@ import destructureQueries, {
 } from "../../src/client/destructure.ts";
 import { test } from "../../_test_variables/client/destructure_variables.ts";
 
-Rhum.testPlan("destructure.ts", () => {
-  Rhum.testSuite("destructure helper function tests", () => {
-    Rhum.testCase("findQueryStrings test", () => {
-      const results = findQueryStrings(test.findQueryStringsTestData);
-      Rhum.asserts.assertEquals(test.findQueryStringsResultData, results);
-    });
-    Rhum.testCase("createQueriesObj test", () => {
-      const results = createQueriesObj(
-        test.createQueriesObjTestData,
-        "queries",
-      );
-      Rhum.asserts.assertEquals(test.createQueriesObjResultsData, results);
-    });
-    Rhum.testCase("findQueryFields test", () => {
-      const results = findQueryFields(test.findQueryFieldsTestData);
-      Rhum.asserts.assertEquals(test.findQueryFieldsResultData, results);
-    });
-    Rhum.testCase("findClosingBrace test", () => {
-      const results = findClosingBrace(test.findClosingBraceTestData, 62);
-      Rhum.asserts.assertEquals(test.findClosingBraceResultData, results);
-    });
-  });
-
-  Rhum.testSuite("destructure single query tests", () => {
-    Rhum.testCase("destructure single query string - no inputs", () => {
-      const result = destructureQueries(test.ALL_ACTORS);
-      Rhum.asserts.assertEquals(test.allActorsTestResult, result);
-    });
-    Rhum.testCase("destructure single query string - inputs", () => {
-      const result = destructureQueries(test.ALL_ACTION_MOVIES);
-      Rhum.asserts.assertEquals(test.allActionTestResult, result);
-    });
-  });
-
-  Rhum.testSuite("destructure multi query tests", () => {
-    Rhum.testCase("destructure multi query - input / non input", () => {
-      const result = destructureQueries(test.ALL_ACTION_MOVIES_AND_ALL_ACTORS);
-      Rhum.asserts.assertEquals(test.allActionActorsTestResult, result);
-    });
-  });
-
-  Rhum.testSuite("destructure alias query tests", () => {
-    Rhum.testCase("destructure multi alias query - input / non input", () => {
-      const result = destructureQueries(test.newAliasTestQuery);
-      Rhum.asserts.assertEquals(test.newAliasTestResult, result);
-    });
-  });
-
-  Rhum.testSuite("destructure fragment tests", () => {
-    Rhum.testCase(
-      "destructure fragment tests - results in two seperate queries",
-      () => {
-        const result = destructureQueries(test.fragmentTestData);
-        Rhum.asserts.assertEquals(test.fragmentResultData, result);
-      },
-    );
-    Rhum.testCase("destructure fragment tests - results in one query", () => {
-      const result = destructureQueries(test.fragmentTestData2);
-      Rhum.asserts.assertEquals(test.fragmentResultData2, result);
-    });
-    Rhum.testCase("destructure fragment tests - nested fragments", () => {
-      const result = destructureQueries(test.fragmentTestData3);
-      Rhum.asserts.assertEquals(test.fragmentResultData3, result);
-    });
-  });
-
-  // single variable test
-  Rhum.testSuite("destructure single variable query tests", () => {
-    Rhum.testCase("destructure single variable query string", () => {
-      const result = destructureQueries(
-        test.singleVariableTestData,
-        test.singleVariableTestValue,
-      );
-      Rhum.asserts.assertEquals(test.singleVariableTestResult, result);
-    });
-  });
-
-  // multi variable test
-  Rhum.testSuite("destructure multi variable query tests", () => {
-    Rhum.testCase("destructure multi variable query", () => {
-      const result = destructureQueries(
-        test.multiVariableTestData,
-        test.multiVariableTestValue,
-      );
-      Rhum.asserts.assertEquals(test.multiVariableTestResult, result);
-    });
-  });
-
-  // single directive test - @include: true
-  Rhum.testSuite("destructure @include directive query tests", () => {
-    Rhum.testCase("destructure @include directive (true) query", () => {
-      const result = destructureQueries(
-        test.includeDirectiveTestData,
-        test.includeDirectiveTrueValues,
-      );
-      Rhum.asserts.assertEquals(test.includeDirectiveTrueResult, result);
-    });
-  });
-
-  // single directive test - @include: false
-  Rhum.testSuite("destructure @include directive query tests", () => {
-    Rhum.testCase("destructure @include directive (false) query", () => {
-      const result = destructureQueries(
-        test.includeDirectiveTestData,
-        test.includeDirectiveFalseValues,
-      );
-
-      Rhum.asserts.assertEquals(test.includeDirectiveFalseResult, result);
-    });
-  });
+Deno.test("destructure.ts - destructure helper function tests - findQueryStrings test", () => {
+  const results = findQueryStrings(test.findQueryStringsTestData);
+  assertEquals(test.findQueryStringsResultData, results);
 });
 
-// single directive test - @skip: true
-Rhum.testSuite("destructure @skip directive query tests", () => {
-  Rhum.testCase("destructure @skip directive (true) query", () => {
-    const result = destructureQueries(
-      test.skipDirectiveTestData,
-      test.skipDirectiveTrueValues,
-    );
-    Rhum.asserts.assertEquals(test.skipDirectiveTrueResult, result);
-  });
+Deno.test("destructure.ts - destructure helper function tests - createQueriesObj test", () => {
+  const results = createQueriesObj(
+    test.createQueriesObjTestData,
+    "queries",
+  );
+  assertEquals(test.createQueriesObjResultsData, results);
 });
 
-// single directive test - @skip: false
-Rhum.testSuite("destructure @skip directive query tests", () => {
-  Rhum.testCase("destructure @skip directive (false) query", () => {
-    const result = destructureQueries(
-      test.skipDirectiveTestData,
-      test.skipDirectiveFalseValues,
-    );
-
-    Rhum.asserts.assertEquals(test.skipDirectiveFalseResult, result);
-  });
+Deno.test("destructure.ts - destructure helper function tests - findQueryFields test", () => {
+  const results = findQueryFields(test.findQueryFieldsTestData);
+  assertEquals(test.findQueryFieldsResultData, results);
 });
 
-// TO-DO: queries with multiple directives (not just one @include/@skip)
+Deno.test("destructure.ts - destructure helper function tests - findClosingBrace test", () => {
+  const results = findClosingBrace(test.findClosingBraceTestData, 62);
+  assertEquals(test.findClosingBraceResultData, results);
+});
 
-Rhum.run();
+Deno.test("destructure.ts - destructure single query tests - destructure single query string - no inputs", () => {
+  const result = destructureQueries(test.ALL_ACTORS);
+  assertEquals(test.allActorsTestResult, result);
+});
+
+Deno.test("destructure.ts - destructure single query tests - destructure single query string - inputs", () => {
+  const result = destructureQueries(test.ALL_ACTION_MOVIES);
+  assertEquals(test.allActionTestResult, result);
+});
+
+Deno.test("destructure.ts - destructure multi query tests - destructure multi query - input / non input", () => {
+  const result = destructureQueries(test.ALL_ACTION_MOVIES_AND_ALL_ACTORS);
+  assertEquals(test.allActionActorsTestResult, result);
+});
+
+Deno.test("destructure.ts - destructure alias query tests - destructure multi alias query - input / non input", () => {
+  const result = destructureQueries(test.newAliasTestQuery);
+  assertEquals(test.newAliasTestResult, result);
+});
+
+Deno.test("destructure.ts - destructure fragment tests - destructure fragment tests - results in two seperate queries", () => {
+  const result = destructureQueries(test.fragmentTestData);
+  assertEquals(test.fragmentResultData, result);
+});
+
+Deno.test("destructure.ts - destructure fragment tests - destructure fragment tests - results in one query", () => {
+  const result = destructureQueries(test.fragmentTestData2);
+  assertEquals(test.fragmentResultData2, result);
+});
+
+Deno.test("destructure.ts - destructure fragment tests - destructure fragment tests - nested fragments", () => {
+  const result = destructureQueries(test.fragmentTestData3);
+  assertEquals(test.fragmentResultData3, result);
+});
+
+Deno.test("destructure.ts - destructure single variable query tests - destructure single variable query string", () => {
+  const result = destructureQueries(
+    test.singleVariableTestData,
+    test.singleVariableTestValue,
+  );
+  assertEquals(test.singleVariableTestResult, result);
+});
+
+Deno.test("destructure.ts - destructure multi variable query tests - destructure multi variable query", () => {
+  const result = destructureQueries(
+    test.multiVariableTestData,
+    test.multiVariableTestValue,
+  );
+  assertEquals(test.multiVariableTestResult, result);
+});
+
+Deno.test("destructure.ts - destructure @include directive query tests - destructure @include directive (true) query", () => {
+  const result = destructureQueries(
+    test.includeDirectiveTestData,
+    test.includeDirectiveTrueValues,
+  );
+  assertEquals(test.includeDirectiveTrueResult, result);
+});
+
+Deno.test("destructure.ts - destructure @include directive query tests - destructure @include directive (false) query", () => {
+  const result = destructureQueries(
+    test.includeDirectiveTestData,
+    test.includeDirectiveFalseValues,
+  );
+  assertEquals(test.includeDirectiveFalseResult, result);
+});
+
+Deno.test("destructure.ts - destructure @skip directive query tests - destructure @skip directive (true) query", () => {
+  const result = destructureQueries(
+    test.skipDirectiveTestData,
+    test.skipDirectiveTrueValues,
+  );
+  assertEquals(test.skipDirectiveTrueResult, result);
+});
+
+Deno.test("destructure.ts - destructure @skip directive query tests - destructure @skip directive (false) query", () => {
+  const result = destructureQueries(
+    test.skipDirectiveTestData,
+    test.skipDirectiveFalseValues,
+  );
+  assertEquals(test.skipDirectiveFalseResult, result);
+});

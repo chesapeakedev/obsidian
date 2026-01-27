@@ -3,7 +3,7 @@
  *
  * To run these tests:
  * 1. Set GITHUB_TOKEN environment variable with a valid GitHub personal access token
- * 2. Run: deno test --allow-net --allow-env test_files/rhum_test_files/client_test.ts
+ * 2. Run: deno test --allow-net --allow-env _test/client/client_test.ts
  */
 
 import {

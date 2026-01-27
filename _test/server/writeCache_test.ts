@@ -8,48 +8,33 @@
  *
  */
 
+import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { Cache } from "../../_test_variables/server/quickCacheLight.ts";
-import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test } from "../../_test_variables/server/writeCache_variables.ts";
 
-Rhum.testPlan("write method on Cache class", () => {
-  Rhum.testSuite("write", () => {
-    Rhum.testCase(
-      "should return the new updated cache when the cache was successfully updated with the same reference to the original cache",
-      () => {
-        const cache = new Cache(test.originalCache);
-        cache.write(test.queryStr, test.respObj);
-        Rhum.asserts.assertEquals(cache.storage, test.originalCache);
-      },
-    );
-    Rhum.testCase(
-      "should update the original cache with the new fields and queries",
-      () => {
-        const cache = new Cache(test.originalCache);
-        cache.write(test.queryStr, test.respObj);
-        Rhum.asserts.assertEquals(cache.storage, test.expectedResultCache);
-      },
-    );
-    Rhum.testCase(
-      "should not overwrite the fields in the original cache with the new fields if the fields are not the same",
-      () => {
-        const cache = new Cache(test.originalCache);
-        cache.write(test.queryStrTwo, test.respObj);
-        Rhum.asserts.assertEquals(test.originalCache, cache.storage);
-      },
-    );
-    // The following test requires the redis server to be started to test functionality.
-    //
-    // Rhum.testCase(
-    //   'alias test case',
-    //   async () => {
-    //     const cache = new CacheServer(test.originalCache);
-    //     await cache.write(test.aliasQuery, test.aliasResponse);
-    //     await console.log(cache.storage);
-    //     Rhum.asserts.assertEquals(cache.storage, test.originalCache);
-    //   }
-    // );
-  });
+Deno.test("write method on Cache class - write - should return the new updated cache when the cache was successfully updated with the same reference to the original cache", () => {
+  const cache = new Cache(test.originalCache);
+  cache.write(test.queryStr, test.respObj);
+  assertEquals(cache.storage, test.originalCache);
 });
-Rhum.run();
-// TO RUN TEST: deno test test_files/rhum_test_files/writeCache_test.ts --allow-env
+
+Deno.test("write method on Cache class - write - should update the original cache with the new fields and queries", () => {
+  const cache = new Cache(test.originalCache);
+  cache.write(test.queryStr, test.respObj);
+  assertEquals(cache.storage, test.expectedResultCache);
+});
+
+Deno.test("write method on Cache class - write - should not overwrite the fields in the original cache with the new fields if the fields are not the same", () => {
+  const cache = new Cache(test.originalCache);
+  cache.write(test.queryStrTwo, test.respObj);
+  assertEquals(test.originalCache, cache.storage);
+});
+
+// The following test requires the redis server to be started to test functionality.
+//
+// Deno.test("write method on Cache class - write - alias test case", async () => {
+//   const cache = new CacheServer(test.originalCache);
+//   await cache.write(test.aliasQuery, test.aliasResponse);
+//   await console.log(cache.storage);
+//   assertEquals(cache.storage, test.originalCache);
+// });

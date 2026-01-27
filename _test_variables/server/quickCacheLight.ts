@@ -1,4 +1,4 @@
-// need redis v0.23.2 to be compatible with Rhum v.1.1.11 testing. That is why we need to separate quickCacheLight from quickCache.ts
+// Lightweight cache implementation for testing purposes. Uses redis v0.23.2 for compatibility.
 import { connect } from "https://deno.land/x/redis@v0.23.2/mod.ts";
 import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
