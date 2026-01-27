@@ -8,7 +8,7 @@ set -e
 make lint 
 
 # rebase upstream over local
-sl pull --rebase -d main 
+sl pull --rebase -d master 
 
 # check if there are any local commits that need to be restacked and pushed
 #
@@ -45,5 +45,5 @@ sl pull --rebase -d main
 draft_commits=$(sl log --rev "draft()" 2>/dev/null)
 if [ -n "$draft_commits" ]; then
   sl restack
-  sl push --to main
+  sl push --to master
 fi
