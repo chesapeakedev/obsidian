@@ -15,30 +15,42 @@
   <img alt="GitHub" src="https://img.shields.io/github/license/open-source-labs/obsidian">
   <img alt="GitHub issues" src="https://img.shields.io/github/issues-raw/open-source-labs/obsidian?color=yellow">
   <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/open-source-labs/obsidian?color=orange">
-  <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/open-source-labs/obsidian?style=social">  
+  <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/open-source-labs/obsidian?style=social">
 </p>
 
 ## Features
 
-- (New!) Support for W-TinyLFU client-side cache that brings great hit-ratio performance with minimal memory overhead
-- (New!) Option to provide Obsidian with the search types your application uses, allowing data cached from complete dataset pulls to be accessible later on in searches for individual items
-- (New!) Refactored server-side caching with Redis
-- (New!) Rebuilt developer tool for Obsidian 8.0 for testing and analytics related to the new client caching options
-- (New!) Option for persistent queries, allowing only a smaller hash to be sent to the server on client-side cache misses, minimizing the cost of queries. Note that while this will increase the overall performance for frequent, repeat queries.
+- Support for W-TinyLFU client-side cache that brings great hit-ratio
+  performance with minimal memory overhead
+- Option to provide Obsidian with the search types your application uses,
+  allowing data cached from complete dataset pulls to be accessible later on in
+  searches for individual items
+- Refactored server-side caching with Redis
+- Rebuilt developer tool for Obsidian 8.0 for testing and analytics related to
+  the new client caching options
+- Option for persistent queries, allowing only a smaller hash to be sent to the
+  server on client-side cache misses, minimizing the cost of queries. Note that
+  while this will increase the overall performance for frequent, repeat queries.
 - Flexible cache responds only with data requested from selected fields
 - GraphQL query abstraction and caching improving the performance of your app
 - SSR React wrapper, allowing you to cache in browser
 - Configurable caching options, giving you complete control over your cache
-- Fullstack integration, leveraging client-side and server-side caching to streamline your caching strategy
+- Fullstack integration, leveraging client-side and server-side caching to
+  streamline your caching strategy
 - Support for the full GraphQL convention
 - Support for client-side and server-side cache invalidation
 - Optional GraphQL DoS attack mitigation security module
 
 ## Overview
 
-Obsidian is Deno's first native GraphQL caching client and server module. Boasting lightning-fast caching and fetching capabilities alongside headlining normalization and rebuilding strategies, Obsidian is equipped to support scalable, highly performant applications.
+Obsidian is Deno's first native GraphQL caching client and server module.
+Boasting lightning-fast caching and fetching capabilities alongside headlining
+normalization and rebuilding strategies, Obsidian is equipped to support
+scalable, highly performant applications.
 
-With additional support for use in server-side rendered React apps built with Deno, full stack integration of Obsidian enables a fast and flexible caching solution.
+With additional support for use in server-side rendered React apps built with
+Deno, full stack integration of Obsidian enables a fast and flexible caching
+solution.
 
 ## Installation
 
@@ -47,78 +59,71 @@ With additional support for use in server-side rendered React apps built with De
 
 ## Creating the Router
 
-```javascript
-import { Application, Router } from 'https://deno.land/x/oak@v6.0.1/mod.ts';
-import { ObsidianRouter, gql } from 'https://deno.land/x/obsidian/mod.ts';
-import { resolvers } from './ import from your resolvers file';
-import { types } from './ import your schema/types from schema/types file';
+```typescript
+import { gql, ObsidianService } from "https://deno.land/x/obsidian/mod.ts";
+import { resolvers } from "./ import from your resolvers file";
+import { types } from "./ import your schema/types from schema/types file";
 
-interface ObsRouter extends Router {
-  obsidianSchema?: any;
-}
+// Create the GraphQL handler
+const handler = await ObsidianService({
+  typeDefs: types, // graphQL typeDefs
+  resolvers: resolvers, // graphQL resolvers
+});
 
-const GraphQLRouter =
-  (await ObsidianRouter) <
-  ObsRouter >
-  {
-    Router, // your router in deno
-    typeDefs: types, // graphQL typeDefs
-    resolvers: resolvers, // graphQL resolvers
-  };
-
-// attach the graphql router's routes to your deno app
-app.use(GraphQLRouter.routes(), GraphQLRouter.allowedMethods());
+// Start the server with Deno.serve
+Deno.serve({ port: 8000 }, handler);
 ```
+
 ## Selecting options for the Router
+
 ```javascript
-const GraphQLRouter =
-  (await ObsidianRouter) <
-  ObsRouter >
-  {
-    Router, // Router that is initialized by server.
-    path: '/graphql', // endpoint for graphQL queries, default to '/graphql'
-    typeDefs: types, // graphQL typeDefs
-    resolvers: resolvers, // graphQL resolvers
-    usePlayground: true, // Boolean to allow for graphQL playground, default to false
-    useCache: true, // Boolean to toggle all cache functionality, default to true
-    redisPort: 6379, // Desired redis port, default to 6379
-    policy: 'allkeys-lru', // Option select your Redis policy, default to allkeys-lru
-    maxmemory: '2000mb', // Option to select Redis capacity, default to 2000mb
-    searchTerms: [] //Optional array to allow broad queries to store according to search fields so individual searches are found in cache
-    persistQueries: true, //Boolean to toggle the use of persistent queries, default to false - NOTE: if using, must also be enabled in client wrapper
-    hashTableSize: 16, // Size of hash table for persistent queries, default to 16
-    maxQueryDepth: 0, // Maximum depth of query, default to 0
-    customIdentifier: ['__typename', '_id'], // keys to be used to idedntify and normalize object
-    mutationTableMap: {}, //Object where keys are add mutation types and value is an array of affected tables (e.g. {addPlants: ['plants'], addMovie: ['movies']})
-  };
+const handler = await ObsidianService({
+  path: "/graphql", // endpoint for graphQL queries, default to '/graphql'
+  typeDefs: types, // graphQL typeDefs
+  resolvers: resolvers, // graphQL resolvers
+  usePlayground: true, // Boolean to allow for graphQL playground, default to false
+  useCache: true, // Boolean to toggle all cache functionality, default to true
+  redisPort: 6379, // Desired redis port, default to 6379
+  policy: "allkeys-lru", // Option select your Redis policy, default to allkeys-lru
+  maxmemory: "2000mb", // Option to select Redis capacity, default to 2000mb
+  searchTerms: [], //Optional array to allow broad queries to store according to search fields so individual searches are found in cache
+  persistQueries: true, //Boolean to toggle the use of persistent queries, default to false - NOTE: if using, must also be enabled in client wrapper
+  hashTableSize: 16, // Size of hash table for persistent queries, default to 16
+  maxQueryDepth: 0, // Maximum depth of query, default to 0
+  customIdentifier: ["__typename", "_id"], // keys to be used to idedntify and normalize object
+  mutationTableMap: {}, //Object where keys are add mutation types and value is an array of affected tables (e.g. {addPlants: ['plants'], addMovie: ['movies']})
+});
+
+// Start the server
+Deno.serve({ port: 8000 }, handler);
 ```
 
-## Creating the Wrapper
+## Creating the Client
 
 ```javascript
-import { ObsidianWrapper } from 'https://deno.land/x/obsidian/clientMod.ts';
+import { ObsidianProvider } from "https://deno.land/x/obsidian/clientMod.ts";
 
 const App = () => {
   return (
-    <ObsidianWrapper>
+    <ObsidianProvider>
       <MovieApp />
-    </ObsidianWrapper>
+    </ObsidianProvider>
   );
 };
 ```
 
-## Selecting options for the Wrapper
+## Making a Query
 
 ```javascript
-<ObsidianWrapper 
+<ObsidianProvider
   useCache={true} // Boolean indicating whether to use client-side cache, default to true
-  algo='LRU' // String indicating cache policy to use for client-side cache, default to LFU. OTHER OPTIONS: W-Tiny-LFU, LRU
-  capacity='5000' // String indicating numeric capacity of cache, default to 2000
+  algo="LRU" // String indicating cache policy to use for client-side cache, default to LFU. OTHER OPTIONS: W-Tiny-LFU, LRU
+  capacity="5000" // String indicating numeric capacity of cache, default to 2000
   persistQueries={true} // Boolean indicating wheter to use persistent queries, default to false
-  searchTerms={['title', 'director', 'genre']} // Optional parameter to set search terms of the data
+  searchTerms={["title", "director", "genre"]} // Optional parameter to set search terms of the data
 >
   <MovieApp />
-</ObsidianWrapper>
+</ObsidianProvider>;
 ```
 
 ## Making a Query
@@ -182,17 +187,24 @@ const MovieApp = () => {
   );
 }
 ```
+
 ## Setting up Redis
 
-In order to utilize server side caching, a Redis instance must be available and running. Redis installation and quick-start documentation can be found [here](https://redis.io/docs/getting-started/). Make sure to keep a redis instance running whenever the application is utilizing server side caching to avoid running into issues.
+In order to utilize server side caching, a Redis instance must be available and
+running. Redis installation and quick-start documentation can be found
+[here](https://redis.io/docs/getting-started/). Make sure to keep a redis
+instance running whenever the application is utilizing server side caching to
+avoid running into issues.
 
-To connect Obsidian to Redis, create a .env file in the root directory of the application with the following information:
+To connect Obsidian to Redis, create a .env file in the root directory of the
+application with the following information:
 
 ```javascript
 REDIS_HOST= //string of redis host name, typically defaulted to '127.0.0.1' by Redis
 ```
-Be sure to also specify the Redis TCP port by passing in the port number as an argument into Obsidian Router (see Selecting options for the Router above).
 
+Be sure to also specify the Redis TCP port by passing in the port number as an
+argument into Obsidian Router (see Selecting options for the Router above).
 
 ## Documentation
 
@@ -200,8 +212,8 @@ Be sure to also specify the Redis TCP port by passing in the port number as an a
 
 ## Developer Tool
 
-Information and instructions on how to use our developer tool can be found here <br/>
-works with Obsidian 8.0 <br/>
+Information and instructions on how to use our developer tool can be found here
+<br/> works with Obsidian 8.0 <br/>
 [open-source-labs/obsidian-developer-tool](https://github.com/open-source-labs/obsidian-developer-tool)
 
 ## Obsidian 8.0 Demo
@@ -214,49 +226,50 @@ Github for a demo with some example code to play with: <br/>
 - Server-side caching improvements
 - More comprehensive mutation support
 - searchTerms option optimization
-- Ability to store/read only the whole query 
+- Ability to store/read only the whole query
 - Hill Climber optimization for W-TinyLFU cache size allocation
 - Developer Tool server-side cache integration
 - Developer Tool View Cache component, and Playground component
 
 ## Authors
-[David Kim](https://github.com/davidtoyoukim)   
-[David Norman](https://github.com/DavidMNorman)   
-[Eileen Cho](https://github.com/exlxxn)   
-[Joan Manto](https://github.com/JoanManto)    
-[Alex Lopez](https://github.com/AlexLopez7)   
-[Kevin Huang](https://github.com/kevin-06-huang)    
-[Matthew Weisker](https://github.com/mweisker)    
-[Ryan Ranjbaran](https://github.com/ranjrover)    
-[Derek Okuno](https://github.com/okunod)  
-[Liam Johnson](https://github.com/liamdimitri)  
-[Josh Reed](https://github.com/joshreed104)  
-[Jonathan Fangon](https://github.com/jonathanfangon)  
-[Liam Jeon](https://github.com/laj52)  
-[Yurii Shchyrba](https://github.com/YuriiShchyrba)  
-[Linda Zhao](https://github.com/lzhao15)  
-[Ali Fay](https://github.com/ali-fay)  
-[Anthony Guan](https://github.com/guananthony)  
-[Yasir Choudhury](https://github.com/Yasir-Choudhury)  
-[Yogi Paturu](https://github.com/YogiPaturu)  
-[Michael Chin](https://github.com/mikechin37)  
-[Dana Flury](https://github.com/dmflury)  
-[Sardor Akhmedov](https://github.com/sarkamedo)  
-[Christopher Berry](https://github.com/cjamesb)  
-[Olivia Yeghiazarian](https://github.com/Olivia-code)  
-[Michael Melville](https://github.com/meekle)  
-[John Wong](https://github.com/johnwongfc)  
-[Kyung Lee](https://github.com/kyunglee1)  
-[Justin McKay](https://github.com/justinwmckay)  
-[Patrick Sullivan](https://github.com/pjmsullivan)  
-[Cameron Simmons](https://github.com/cssim22)  
-[Raymond Ahn](https://github.com/raymondcodes)  
-[Alonso Garza](https://github.com/Alonsog66)  
-[Burak Caliskan](https://github.com/CaliskanBurak)  
-[Matt Meigs](https://github.com/mmeigs)  
-[Travis Frank](https://github.com/TravisFrankMTG/)  
-[Lourent Flores](https://github.com/lourentflores)  
-[Esma Sahraoui](https://github.com/EsmaShr)  
-[Derek Miller](https://github.com/dsymiller)  
-[Eric Marcatoma](https://github.com/ericmarc159)  
+
+[David Kim](https://github.com/davidtoyoukim)\
+[David Norman](https://github.com/DavidMNorman)\
+[Eileen Cho](https://github.com/exlxxn)\
+[Joan Manto](https://github.com/JoanManto)\
+[Alex Lopez](https://github.com/AlexLopez7)\
+[Kevin Huang](https://github.com/kevin-06-huang)\
+[Matthew Weisker](https://github.com/mweisker)\
+[Ryan Ranjbaran](https://github.com/ranjrover)\
+[Derek Okuno](https://github.com/okunod)\
+[Liam Johnson](https://github.com/liamdimitri)\
+[Josh Reed](https://github.com/joshreed104)\
+[Jonathan Fangon](https://github.com/jonathanfangon)\
+[Liam Jeon](https://github.com/laj52)\
+[Yurii Shchyrba](https://github.com/YuriiShchyrba)\
+[Linda Zhao](https://github.com/lzhao15)\
+[Ali Fay](https://github.com/ali-fay)\
+[Anthony Guan](https://github.com/guananthony)\
+[Yasir Choudhury](https://github.com/Yasir-Choudhury)\
+[Yogi Paturu](https://github.com/YogiPaturu)\
+[Michael Chin](https://github.com/mikechin37)\
+[Dana Flury](https://github.com/dmflury)\
+[Sardor Akhmedov](https://github.com/sarkamedo)\
+[Christopher Berry](https://github.com/cjamesb)\
+[Olivia Yeghiazarian](https://github.com/Olivia-code)\
+[Michael Melville](https://github.com/meekle)\
+[John Wong](https://github.com/johnwongfc)\
+[Kyung Lee](https://github.com/kyunglee1)\
+[Justin McKay](https://github.com/justinwmckay)\
+[Patrick Sullivan](https://github.com/pjmsullivan)\
+[Cameron Simmons](https://github.com/cssim22)\
+[Raymond Ahn](https://github.com/raymondcodes)\
+[Alonso Garza](https://github.com/Alonsog66)\
+[Burak Caliskan](https://github.com/CaliskanBurak)\
+[Matt Meigs](https://github.com/mmeigs)\
+[Travis Frank](https://github.com/TravisFrankMTG/)\
+[Lourent Flores](https://github.com/lourentflores)\
+[Esma Sahraoui](https://github.com/EsmaShr)\
+[Derek Miller](https://github.com/dsymiller)\
+[Eric Marcatoma](https://github.com/ericmarc159)\
 [Spencer Stockton](https://github.com/tonstock)
