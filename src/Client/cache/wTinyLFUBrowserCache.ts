@@ -61,18 +61,19 @@ export default class WTinyLFUCache {
     // isolate the type of search from the rest of the hash name
     const hyphenIdx = allHashesFromQuery[0].indexOf("~");
     const typeName = allHashesFromQuery[0].slice(0, hyphenIdx);
-    const reduction = await allHashesFromQuery.reduce(async (acc, hash) => {
+    const result: unknown[] = [];
+    for (const hash of allHashesFromQuery) {
       // for each hash from the input query, build the response object
       // first, check the SLRU cache
       let readVal = await this.SLRU.get(hash);
       // if the hash is not in the SLRU, check the WLRU
       if (!readVal) readVal = await this.WLRU.get(hash);
-      if (readVal === "DELETED") return acc;
+      if (readVal === "DELETED") continue;
       if (readVal) this.sketch.increment(JSON.stringify(readVal));
-      if (!readVal) return undefined;
+      if (!readVal) return [];
       const dataObj: Record<string, unknown> = {};
       if (typeof fields !== "object" || fields === null) {
-        return undefined;
+        return [];
       }
       const fieldsRecord = fields as Record<string, unknown>;
       const readValRecord = readVal as Record<string, unknown>;
@@ -81,7 +82,7 @@ export default class WTinyLFUCache {
         // for each field in the fields input query, add the corresponding value from the cache
         // if the field is not another array of hashes
         if (readValRecord[field] === undefined && field !== "__typename") {
-          return undefined;
+          return [];
         }
         if (typeof fieldsRecord[field] !== "object") {
           // add the typename for the type
@@ -97,17 +98,14 @@ export default class WTinyLFUCache {
               fieldsRecord[field],
             );
           } else {
-            return undefined;
+            return [];
           }
-          if (dataObj[field] === undefined) return undefined;
+          if (dataObj[field] === undefined) return [];
         }
       }
-      // acc is an array of response object for each hash
-      const resolvedProm = await Promise.resolve(acc);
-      resolvedProm.push(dataObj);
-      return resolvedProm;
-    }, Promise.resolve([]));
-    return reduction;
+      result.push(dataObj);
+    }
+    return result;
   }
 
   // read from the cache and generate a response object to be populated with values from cache
@@ -116,14 +114,22 @@ export default class WTinyLFUCache {
       throw TypeError("input should be a string");
     }
     // destructure the query string into an object
-    const queries = destructureQueries(queryStr).queries;
+    const queries = destructureQueries(queryStr).queries as
+      | Array<{
+        name: string;
+        arguments: string;
+        alias?: string;
+        fields: unknown;
+      }>
+      | undefined;
     // breaks out of function if queryStr is a mutation
     if (!queries) return undefined;
     const responseObject: Record<string, unknown> = {};
     // iterate through each query in the input queries object
     for (const query in queries) {
+      const queryObj = queries[query];
       // get the entire str query from the name input query and arguments
-      const queryHash = queries[query].name.concat(queries[query].arguments);
+      const queryHash = queryObj.name.concat(queryObj.arguments);
       const rootQuery = this.ROOT_QUERY;
       // match in ROOT_QUERY
       if (rootQuery[queryHash]) {
@@ -134,11 +140,11 @@ export default class WTinyLFUCache {
         }
         const arrayHashes = rootQueryValue as string[];
         // Determines responseObject property labels - use alias if applicable, otherwise use name
-        const respObjProp = queries[query].alias ?? queries[query].name;
+        const respObjProp = queryObj.alias ?? queryObj.name;
         // invoke populateAllHashes and add data objects to the response object for each input query
         responseObject[respObjProp] = await this.populateAllHashes(
           arrayHashes,
-          queries[query].fields,
+          queryObj.fields,
         );
 
         if (!responseObject[respObjProp]) return undefined;

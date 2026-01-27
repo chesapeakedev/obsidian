@@ -220,7 +220,7 @@ export class ObsidianClient {
           if (update && this.cache) {
             update(
               this.cache as unknown as Record<string, unknown>,
-              responseObj,
+              responseObj as unknown as Record<string, unknown>,
             );
           }
           if (cacheWrite && this.cache && responseObj.data) {
@@ -262,7 +262,10 @@ export class ObsidianClient {
 
         // Handle update function
         if (update) {
-          update(this.cache as unknown as Record<string, unknown>, responseObj);
+          update(
+            this.cache as unknown as Record<string, unknown>,
+            responseObj as unknown as Record<string, unknown>,
+          );
         }
 
         // Write to cache if no errors

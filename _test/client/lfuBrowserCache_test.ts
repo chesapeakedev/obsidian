@@ -12,17 +12,66 @@ import LFUCache from "../../src/client/cache/lfuCache.ts";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test } from "../../_test_variables/client/lfuBrowserCache_variables.ts";
 
+// Type definitions for test objects
+interface NestedObj {
+  queryStr: string;
+  respObj: {
+    data: {
+      Movie: Array<{
+        __typename: string;
+        id: string;
+        title: string;
+        actors: Array<{
+          __typename: string;
+          id: string;
+          firstName: string;
+          lastName: string;
+        }>;
+      }>;
+    };
+  };
+  expectedCache: Record<string, unknown>;
+}
+
+interface LFUObj {
+  queryStr1: string;
+  queryStr2: string;
+  respObj1: {
+    data: {
+      Actors: Array<{
+        __typename: string;
+        id: string;
+        firstName: string;
+        lastName: string;
+      }>;
+    };
+  };
+  respObj2: {
+    data: {
+      Actors: Array<{
+        __typename: string;
+        id: string;
+        firstName: string;
+        lastName: string;
+      }>;
+    };
+  };
+  expectedCache1: Record<string, unknown>;
+  expectedCache2: Record<string, unknown>;
+}
+
 Rhum.testPlan("LFU Browser Cache Testing", () => {
   Rhum.testSuite("write/read nested data object", () => {
     Rhum.testCase(
       "should store a nested data object into LFUCache and read the stored un-nested data objects by calling their hashes",
       async () => {
         const cache = new LFUCache(10);
-        await cache.write(test.nestedObj.queryStr, test.nestedObj.respObj);
-        for (const key of Object.keys(test.nestedObj.expectedCache)) {
+        const nestedObj = test.nestedObj as NestedObj;
+        await cache.write(nestedObj.queryStr, nestedObj.respObj);
+        for (const key of Object.keys(nestedObj.expectedCache)) {
           await Rhum.asserts.assertEquals(
             cache.get(key),
-            test.nestedObj.expectedCache[key],
+            nestedObj.expectedCache[key],
           );
         }
       },
@@ -33,16 +82,17 @@ Rhum.testPlan("LFU Browser Cache Testing", () => {
       "should remove the least frequently used item from cache",
       async () => {
         const cache = new LFUCache(5);
-        await cache.write(test.LFUObj.queryStr1, test.LFUObj.respObj1);
+        const lfuObj = test.LFUObj as LFUObj;
+        await cache.write(lfuObj.queryStr1, lfuObj.respObj1);
         await Rhum.asserts.assertEquals(
           cache.get("Actor~1"),
-          test.LFUObj.expectedCache1["Actor~1"],
+          lfuObj.expectedCache1["Actor~1"],
         );
         await cache.get("Actor~2");
         await cache.get("Actor~3");
         await cache.get("Actor~4");
         await cache.get("Actor~5");
-        await cache.write(test.LFUObj.queryStr2, test.LFUObj.respObj2);
+        await cache.write(lfuObj.queryStr2, lfuObj.respObj2);
         Rhum.asserts.assertEquals(cache.get("Actor~1"), undefined);
       },
     );

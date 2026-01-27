@@ -12,6 +12,44 @@ import {
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { ObsidianClient } from "../../src/client/ObsidianClient.ts";
 
+// Type definitions for GitHub GraphQL responses
+interface Viewer {
+  login: string;
+  name?: string;
+  bio?: string;
+  avatarUrl?: string;
+  email?: string;
+  company?: string;
+  repositories?: {
+    nodes: Array<{
+      name: string;
+      description?: string;
+      owner: {
+        login: string;
+      };
+    }>;
+  };
+}
+
+interface Repository {
+  name: string;
+  description?: string;
+  stargazerCount: number;
+  forkCount?: number;
+  owner: {
+    login: string;
+    __typename?: string;
+  };
+}
+
+interface ViewerResponse {
+  viewer: Viewer;
+}
+
+interface RepositoryResponse {
+  repository: Repository;
+}
+
 // GitHub GraphQL API endpoint
 const GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql";
 
@@ -55,13 +93,13 @@ Deno.test("ObsidianClient: Basic query without cache", async () => {
     }
   `;
 
-  const response = await client.query(query);
+  const response = await client.query<ViewerResponse>(query);
 
   assertExists(response);
   assertExists(response.data);
-  assertExists(response.data.viewer);
-  assertExists(response.data.viewer.login);
-  assertEquals(typeof response.data.viewer.login, "string");
+  assertExists(response.data?.viewer);
+  assertExists(response.data?.viewer.login);
+  assertEquals(typeof response.data?.viewer.login, "string");
 });
 
 Deno.test("ObsidianClient: Query with LFU cache", async () => {
@@ -83,24 +121,24 @@ Deno.test("ObsidianClient: Query with LFU cache", async () => {
 
   // First query - cache miss
   const start1 = Date.now();
-  const response1 = await client.query(query);
+  const response1 = await client.query<ViewerResponse>(query);
   const _time1 = Date.now() - start1;
 
   assertExists(response1.data);
-  assertExists(response1.data.viewer);
+  assertExists(response1.data?.viewer);
 
   // Second query - should be cache hit
   const start2 = Date.now();
-  const response2 = await client.query(query);
+  const response2 = await client.query<ViewerResponse>(query);
   const _time2 = Date.now() - start2;
 
   // Cache hit should be faster (or at least return data)
   assertExists(response2.data);
-  assertExists(response2.data.viewer);
-  assertEquals(response1.data.viewer.login, response2.data.viewer.login);
+  assertExists(response2.data?.viewer);
+  assertEquals(response1.data?.viewer.login, response2.data?.viewer.login);
 
   // Verify it's actually from cache (response should be identical)
-  assertEquals(response1.data.viewer.login, response2.data.viewer.login);
+  assertEquals(response1.data?.viewer.login, response2.data?.viewer.login);
 });
 
 Deno.test("ObsidianClient: Query with LRU cache", async () => {
@@ -119,14 +157,14 @@ Deno.test("ObsidianClient: Query with LRU cache", async () => {
     }
   `;
 
-  const response1 = await client.query(query);
+  const response1 = await client.query<ViewerResponse>(query);
   assertExists(response1.data);
-  assertExists(response1.data.viewer);
+  assertExists(response1.data?.viewer);
 
   // Second query should hit cache
-  const response2 = await client.query(query);
+  const response2 = await client.query<ViewerResponse>(query);
   assertExists(response2.data);
-  assertEquals(response1.data.viewer.login, response2.data.viewer.login);
+  assertEquals(response1.data?.viewer.login, response2.data?.viewer.login);
 });
 
 Deno.test("ObsidianClient: Query with W-TinyLFU cache", async () => {
@@ -145,14 +183,14 @@ Deno.test("ObsidianClient: Query with W-TinyLFU cache", async () => {
     }
   `;
 
-  const response1 = await client.query(query);
+  const response1 = await client.query<ViewerResponse>(query);
   assertExists(response1.data);
-  assertExists(response1.data.viewer);
+  assertExists(response1.data?.viewer);
 
   // Second query should hit cache
-  const response2 = await client.query(query);
+  const response2 = await client.query<ViewerResponse>(query);
   assertExists(response2.data);
-  assertEquals(response1.data.viewer.login, response2.data.viewer.login);
+  assertEquals(response1.data?.viewer.login, response2.data?.viewer.login);
 });
 
 Deno.test("ObsidianClient: Query with nested fields", async () => {
@@ -175,13 +213,13 @@ Deno.test("ObsidianClient: Query with nested fields", async () => {
     }
   `;
 
-  const response = await client.query(query);
+  const response = await client.query<ViewerResponse>(query);
 
   assertExists(response.data);
-  assertExists(response.data.viewer);
-  assertExists(response.data.viewer.repositories);
-  assertExists(response.data.viewer.repositories.nodes);
-  assertEquals(Array.isArray(response.data.viewer.repositories.nodes), true);
+  assertExists(response.data?.viewer);
+  assertExists(response.data?.viewer.repositories);
+  assertExists(response.data?.viewer.repositories?.nodes);
+  assertEquals(Array.isArray(response.data?.viewer.repositories?.nodes), true);
 });
 
 Deno.test("ObsidianClient: Cache read/write options", async () => {
@@ -196,17 +234,23 @@ Deno.test("ObsidianClient: Cache read/write options", async () => {
   `;
 
   // First query with cache write
-  const response1 = await client.query(query, { cacheWrite: true });
+  const response1 = await client.query<ViewerResponse>(query, {
+    cacheWrite: true,
+  });
   assertExists(response1.data);
 
   // Second query with cache read disabled
-  const response2 = await client.query(query, { cacheRead: false });
+  const response2 = await client.query<ViewerResponse>(query, {
+    cacheRead: false,
+  });
   assertExists(response2.data);
 
   // Third query with cache read enabled (should hit cache)
-  const response3 = await client.query(query, { cacheRead: true });
+  const response3 = await client.query<ViewerResponse>(query, {
+    cacheRead: true,
+  });
   assertExists(response3.data);
-  assertEquals(response1.data.viewer.login, response3.data.viewer.login);
+  assertEquals(response1.data?.viewer.login, response3.data?.viewer.login);
 });
 
 Deno.test("ObsidianClient: Clear cache", async () => {
@@ -221,16 +265,16 @@ Deno.test("ObsidianClient: Clear cache", async () => {
   `;
 
   // First query - populate cache
-  const response1 = await client.query(query);
+  const response1 = await client.query<ViewerResponse>(query);
   assertExists(response1.data);
 
   // Clear cache
   client.clearCache();
 
   // Second query - should be cache miss (but still work)
-  const response2 = await client.query(query);
+  const response2 = await client.query<ViewerResponse>(query);
   assertExists(response2.data);
-  assertEquals(response1.data.viewer.login, response2.data.viewer.login);
+  assertEquals(response1.data?.viewer.login, response2.data?.viewer.login);
 });
 
 Deno.test("ObsidianClient: Query repository information", async () => {
@@ -251,14 +295,14 @@ Deno.test("ObsidianClient: Query repository information", async () => {
     }
   `;
 
-  const response = await client.query(query);
+  const response = await client.query<RepositoryResponse>(query);
 
   assertExists(response.data);
-  assertExists(response.data.repository);
-  assertEquals(response.data.repository.name, "deno");
-  assertEquals(response.data.repository.owner.login, "denoland");
-  assertExists(response.data.repository.stargazerCount);
-  assertEquals(typeof response.data.repository.stargazerCount, "number");
+  assertExists(response.data?.repository);
+  assertEquals(response.data?.repository.name, "deno");
+  assertEquals(response.data?.repository.owner.login, "denoland");
+  assertExists(response.data?.repository.stargazerCount);
+  assertEquals(typeof response.data?.repository.stargazerCount, "number");
 });
 
 Deno.test("ObsidianClient: Multiple queries with different data", async () => {
@@ -280,21 +324,21 @@ Deno.test("ObsidianClient: Multiple queries with different data", async () => {
     }
   `;
 
-  const response1 = await client.query(query1);
-  const response2 = await client.query(query2);
+  const response1 = await client.query<ViewerResponse>(query1);
+  const response2 = await client.query<RepositoryResponse>(query2);
 
   assertExists(response1.data);
   assertExists(response2.data);
-  assertExists(response1.data.viewer);
-  assertExists(response2.data.repository);
-  assertEquals(response2.data.repository.name, "deno");
+  assertExists(response1.data?.viewer);
+  assertExists(response2.data?.repository);
+  assertEquals(response2.data?.repository.name, "deno");
 
   // Both should be cached now
-  const cached1 = await client.query(query1);
-  const cached2 = await client.query(query2);
+  const cached1 = await client.query<ViewerResponse>(query1);
+  const cached2 = await client.query<RepositoryResponse>(query2);
 
-  assertEquals(cached1.data.viewer.login, response1.data.viewer.login);
-  assertEquals(cached2.data.repository.name, response2.data.repository.name);
+  assertEquals(cached1.data?.viewer.login, response1.data?.viewer.login);
+  assertEquals(cached2.data?.repository.name, response2.data?.repository.name);
 });
 
 Deno.test("ObsidianClient: Error handling", async () => {

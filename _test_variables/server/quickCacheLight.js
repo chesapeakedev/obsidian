@@ -175,4 +175,47 @@ export class Cache {
   stopPollInterval(interval) {
     clearInterval(interval);
   }
+
+  async populateAllHashes(allHashes, fields) {
+    if (!allHashes.length) return [];
+    const tildeInd = allHashes[0].indexOf("~");
+    const typeName = allHashes[0].slice(0, tildeInd);
+    const reduction = await allHashes.reduce(async (acc, hash) => {
+      const readStr = await redis.get(hash);
+      if (!readStr) return undefined;
+      const readVal = JSON.parse(readStr);
+      if (!readVal) return;
+      const dataObj = {};
+      // iterate over the fields object to populate with data from cache
+      if (typeof fields !== "object" || fields === null) {
+        return undefined;
+      }
+      for (const field in fields) {
+        if (typeof fields[field] !== "object") {
+          if (field === "__typename") {
+            dataObj[field] = typeName;
+          } else {
+            dataObj[field] = readVal[field] || "n/a";
+          }
+        } else {
+          // if the field from the input query is an array of hashes, recursively invoke
+          const fieldValue = readVal[field];
+          if (Array.isArray(fieldValue)) {
+            dataObj[field] = await this.populateAllHashes(
+              fieldValue,
+              fields[field],
+            );
+          } else {
+            return undefined;
+          }
+          if (dataObj[field] === undefined) return;
+        }
+      }
+      // at this point acc should be an array of response objects for each hash
+      const resolvedProm = await Promise.resolve(acc);
+      resolvedProm.push(dataObj);
+      return resolvedProm;
+    }, Promise.resolve([]));
+    return reduction;
+  }
 }

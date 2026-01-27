@@ -13,7 +13,7 @@ export default function normalizeResult(
   if (deleteFlag) {
     //creates the ROOT_MUTATION hash that is being deleted
     result["ROOT_MUTATION"] = createRootQuery(
-      queryObj.mutations,
+      queryObj.mutations as unknown[],
       resultObj,
       deleteFlag,
     );
@@ -25,41 +25,58 @@ export default function normalizeResult(
       //iterates thru the array of objects and stores the hash in the result object with 'DELETE' as value
       obj.forEach((ele: Record<string, unknown>) => {
         const mutationKeys = Object.keys(ele);
-        const hash = labelId(ele[mutationKeys[0]]);
+        const hash = labelId(ele[mutationKeys[0]] as Record<string, unknown>);
         result[hash] = "DELETED";
       });
-    } else {
+    } else if (obj && typeof obj === "object") {
       //else stores the hash in the result object with the value 'DELETE'
-      const mutationKeys = Object.keys(obj);
-      const hash = labelId(obj[mutationKeys[0]]);
+      const objRecord = obj as Record<string, unknown>;
+      const mutationKeys = Object.keys(objRecord);
+      const hash = labelId(
+        objRecord[mutationKeys[0]] as Record<string, unknown>,
+      );
       result[hash] = "DELETED";
     }
   } // creates a stringified version of query request and stores it in ROOT_QUERY key
   else if (queryObj.queries || queryObj.mutations) {
     if (queryObj.queries) {
-      result["ROOT_QUERY"] = createRootQuery(queryObj.queries, resultObj);
+      result["ROOT_QUERY"] = createRootQuery(
+        queryObj.queries as unknown[],
+        resultObj,
+      );
     } else {
-      result["ROOT_MUTATION"] = createRootQuery(queryObj.mutations, resultObj);
+      result["ROOT_MUTATION"] = createRootQuery(
+        queryObj.mutations as unknown[],
+        resultObj,
+      );
     }
-    for (const curr in resultObj.data) {
-      if (!Array.isArray(resultObj.data[curr])) {
-        const hashObj = createHash(resultObj.data[curr]);
+    const data = resultObj.data as Record<string, unknown>;
+    for (const curr in data) {
+      if (!Array.isArray(data[curr])) {
+        const hashObj = createHash(data[curr] as Record<string, unknown>);
         for (const hash in hashObj) {
           if (result[hash]) {
-            Object.assign(result[hash], hashObj[hash]);
+            Object.assign(
+              result[hash] as Record<string, unknown>,
+              hashObj[hash],
+            );
           } else {
             result[hash] = hashObj[hash];
           }
         }
       } else {
-        for (let i = 0; i < resultObj.data[curr].length; i++) {
+        const currArray = data[curr] as unknown[];
+        for (let i = 0; i < currArray.length; i++) {
           // pass current obj to createHash function to create  obj of hashes
-          const hashObj = createHash(resultObj.data[curr][i]);
+          const hashObj = createHash(currArray[i] as Record<string, unknown>);
           // check if the hash object pair exists, if not create new key value pair
           // if it does exist merge the hash pair with the existing key value pair
           for (const hash in hashObj) {
             if (result[hash]) {
-              Object.assign(result[hash], hashObj[hash]);
+              Object.assign(
+                result[hash] as Record<string, unknown>,
+                hashObj[hash],
+              );
             } else {
               result[hash] = hashObj[hash];
             }
@@ -80,11 +97,12 @@ function createRootQuery(
   const output: Record<string, unknown> = {};
   queryObjArr.forEach((query: Record<string, unknown>) => {
     // if query has an alias declare it
-    const alias = query.alias ?? null;
-    const name = query.name;
-    const args = query.arguments;
+    const alias = query.alias as string | null;
+    const name = query.name as string;
+    const args = query.arguments as string;
     const queryHash = name + args;
-    const result = resultObj.data[alias] ?? resultObj.data[name];
+    const data = resultObj.data as Record<string, unknown>;
+    const result = data[alias ?? ""] ?? data[name];
     // iterate thru the array of current query response
     // and store the hash of that response in an array
 
@@ -119,21 +137,25 @@ function createHash(
     if (!Array.isArray(obj[field])) {
       //check whether current field is an object
       if (typeof obj[field] === "object" && obj[field] !== null) {
-        output[hash][field] = labelId(obj[field]);
-        output = createHash(obj[field], output);
+        const fieldObj = obj[field] as Record<string, unknown>;
+        const hashObj = output[hash] as Record<string, unknown>;
+        hashObj[field] = labelId(fieldObj);
+        output = createHash(fieldObj, output);
       } else {
-        output[hash][field] = obj[field];
+        const hashObj = output[hash] as Record<string, unknown>;
+        hashObj[field] = obj[field];
       }
     } // if it's an array of objects, iterate thru the array
     // create a hash for each obj in the array and store it in an array
     // recursive call on the current obj in the array
     // store the output of the recursive call in output
     else {
-      output[hash][field] = [];
+      const hashObj = output[hash] as Record<string, unknown>;
+      hashObj[field] = [];
       (obj[field] as Record<string, unknown>[]).forEach(
         (obj: Record<string, unknown>) => {
           const arrayHash = labelId(obj);
-          (output[hash][field] as string[]).push(arrayHash);
+          (hashObj[field] as string[]).push(arrayHash);
           output = createHash(obj, output);
         },
       );

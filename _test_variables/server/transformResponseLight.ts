@@ -39,13 +39,17 @@ export const transformResponse = (
   const result: GenericObject = {};
 
   if (responseObject.data) {
-    return transformResponse(responseObject.data, hashableKeys);
+    const data = responseObject.data as GenericObject;
+    return transformResponse(data, hashableKeys);
   } else if (isHashableObject(responseObject, hashableKeys)) {
     return result;
   } else {
     for (const key in responseObject) {
-      if (isArrayOfHashableObjects(responseObject[key], hashableKeys)) {
-        for (const element of responseObject[key]) {
+      const value = responseObject[key];
+      if (
+        Array.isArray(value) && isArrayOfHashableObjects(value, hashableKeys)
+      ) {
+        for (const element of value) {
           const hash = hashMaker(element, hashableKeys);
           result[hash] = transformResponse(element, hashableKeys);
         }
@@ -90,7 +94,7 @@ export const detransformResponse = async (
       return result;
     } else {
       const currField: string = fields[currDepth];
-      result[currField] = [];
+      result[currField] = [] as GenericObject[];
 
       for (const hash in transformedValue) {
         console.log("hash -> ", hash);
@@ -101,12 +105,13 @@ export const detransformResponse = async (
           return { "cache evicted": {} };
         }
 
-        result[currField].push(redisValue);
+        const fieldArray = result[currField] as GenericObject[];
+        fieldArray.push(redisValue);
 
-        result[currField][result[currField].length - 1] = Object.assign(
-          result[currField][result[currField].length - 1],
+        fieldArray[fieldArray.length - 1] = Object.assign(
+          fieldArray[fieldArray.length - 1],
           await recursiveDetransform(
-            transformedValue[hash],
+            transformedValue[hash] as GenericObject,
             fields,
             depth = currDepth + 1,
           ),
