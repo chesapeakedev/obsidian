@@ -2,7 +2,13 @@ SHELL := bash
 
 .PHONY: sync lint format format_check lint_deno fmt_deno fmt_deno_check check_deno
 
+default: lint
+
+publish: ; deno task publish
 # Combined linting targets
+sync: ./repo_sync.sh
+	$(SHELL) ./repo_sync.sh
+
 # Note: lint also runs formatting to ensure code is properly formatted before linting
 lint: format lint_deno
 	@echo ""
@@ -50,7 +56,4 @@ check_deno:
 	@echo "✅ Running full Deno checks (fmt + lint + typecheck)..."
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@deno task check
-
-sync: ./repo_sync.sh
-	$(SHELL) ./repo_sync.sh
 

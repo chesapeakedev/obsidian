@@ -3,10 +3,10 @@
  * A TypeScript client for GraphQL queries and mutations with intelligent caching
  */
 
-import LFUCache from "../cache/lfuCache.ts";
-import LRUCache from "../cache/lruCache.ts";
-import WTinyLFUCache from "../cache/wTinyLFUBrowserCache.ts";
-import { insertTypenames } from "../insertTypenames.ts";
+import LFUCache from "./cache/lfuCache.ts";
+import LRUCache from "./cache/lruCache.ts";
+import WTinyLFUCache from "./cache/wTinyLFUBrowserCache.ts";
+import { insertTypenames } from "./insertTypenames.ts";
 
 export type CacheAlgorithm = "LFU" | "LRU" | "W-TinyLFU";
 

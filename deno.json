@@ -1,26 +1,19 @@
 {
-  "name": "@chesapeake/obsidian",
+  "name": "@chesapeake/obsidian-gql",
   "version": "0.0.1",
   "exports": {
     ".": "./mod.ts"
   },
   "publish": {
-    "include": [
-      "./**/*.ts",
-      "./**/*.js",
-      "./**/*.jsx",
-      "./README.md"
-    ],
-    "exclude": [
-      "./test_files/**",
-      "./.github/**",
-      "./.vscode/**",
-      "./.sl/**",
-      "./assets/**",
-      "./Dockerfile",
-      "./docker-compose.yml",
-      "./CONTRIBUTING.md"
-    ]
+    "include": ["./src/**/*.ts", "./mod.ts", "./README.md"],
+    "exclude": ["./src/**/*_test.ts", "./src/**/*.test.ts", "./_test/**", "./_test_variables/**"]
+  },
+  "imports": {
+    "@graphql-tools/schema": "npm:@graphql-tools/schema@^10.0.31",
+    "graphql": "npm:graphql@^15.10.1",
+    "graphql-playground-html": "npm:graphql-playground-html@^1.6.30",
+    "graphql-tag": "npm:graphql-tag@^2.12.6",
+    "pluralize": "jsr:@wei/pluralize@8.0.2"
   },
   "compilerOptions": {
     "strict": true,
@@ -43,7 +36,8 @@
       "**/build",
       "**/target",
       "**/.git",
-      "**/.sl"
+      "**/.sl",
+      "**/packages"
     ]
   },
   "lint": {
@@ -60,7 +54,8 @@
       "**/build",
       "**/target",
       "**/.git",
-      "**/.sl"
+      "**/.sl",
+      "**/packages"
     ]
   },
   "tasks": {
@@ -68,14 +63,10 @@
     "fmt:check": "deno fmt --check",
     "lint": "deno lint",
     "lint:fix": "deno lint --fix",
-    "test": "deno test --allow-env",
-    "check": "deno fmt --check && deno lint && deno check **/*.ts"
-  },
-  "imports": {
-    "@graphql-tools/schema": "npm:@graphql-tools/schema@^10.0.31",
-    "graphql": "npm:graphql@^15.10.1",
-    "graphql-playground-html": "npm:graphql-playground-html@^1.6.30",
-    "graphql-tag": "npm:graphql-tag@^2.12.6",
-    "pluralize": "jsr:@wei/pluralize@8.0.2"
+    "test": "deno test --allow-env --allow-net",
+    "test:server": "deno test --allow-env --allow-net _test/server/",
+    "test:client": "deno test --allow-net --allow-env _test/client/",
+    "check": "deno fmt --check && deno lint && deno check **/*.ts",
+    "publish": "deno publish"
   }
 }

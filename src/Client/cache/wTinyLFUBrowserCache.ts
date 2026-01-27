@@ -1,7 +1,7 @@
-import { pluralize } from "pluralize";
+import { pluralize } from "jsr:@wei/pluralize@8.0.2";
 
-import normalizeResult from "./normalizeResult.ts";
-import destructureQueries from "./destructure.ts";
+import normalizeResult from "../normalizeResult.ts";
+import destructureQueries from "../destructure.ts";
 import SLRUCache from "./slruSub-cache.ts";
 import LRUCache from "./lruSub-cache.ts";
 import { FrequencySketch } from "./FrequencySketch.ts";
@@ -306,6 +306,14 @@ export default class WTinyLFUCache {
     );
     // return the object with the higher frequency, prioritizing items in the window cache,
     return WLRUFreq >= SLRUFreq ? WLRUCandidate : SLRUCandidate;
+  }
+
+  cacheClear(): void {
+    this.ROOT_QUERY = {};
+    this.ROOT_MUTATION = {};
+    this.WLRU.nodeHash.clear();
+    this.SLRU.probationaryLRU.nodeHash.clear();
+    this.SLRU.protectedLRU.nodeHash.clear();
   }
 }
 

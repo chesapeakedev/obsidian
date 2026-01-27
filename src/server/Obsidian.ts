@@ -1,7 +1,7 @@
 import { graphql } from "graphql";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { renderPlaygroundPage } from "graphql-playground-html";
-import { Cache } from "./quickCache.ts";
+import { Cache } from "./cache/quickCache.ts";
 import queryDepthLimiter from "./DoSSecurity.ts";
 import { restructure } from "./restructure.ts";
 import { normalizeObject } from "./normalize.ts";

@@ -18,8 +18,8 @@ export class FrequencySketch {
     const max = Math.floor(maxSize); //to ensure it's an integer
     if (this.table.length >= max) return;
 
-    this.table = Array(Math.max(nearestPowerOfTwo(max), 8)).fill(0).map(() =>
-      Array(2).fill(0)
+    this.table = Array(Math.max(this.nearestPowerOfTwo(max), 8)).fill(0).map(
+      () => Array(2).fill(0),
     );
     this.sampleSize = (maxSize === 0) ? 10 : (10 * max);
     this.blockMask = (this.table.length >>> 3) - 1;
@@ -46,8 +46,8 @@ export class FrequencySketch {
     if (this.isNotInitialized()) return 0;
     const count = Array(4);
 
-    const blockHash = supphash(hashCode(el));
-    const counterHash = rehash(blockHash);
+    const blockHash = this.supphash(this.hashCode(el));
+    const counterHash = this.rehash(blockHash);
     const block = (blockHash & this.blockMask) << 3;
 
     for (let i = 0; i < 4; i++) {
@@ -70,8 +70,8 @@ export class FrequencySketch {
     if (this.isNotInitialized()) return;
 
     const index = Array(8);
-    const blockHash = supphash(hashCode(el));
-    const counterHash = rehash(blockHash);
+    const blockHash = this.supphash(this.hashCode(el));
+    const counterHash = this.rehash(blockHash);
     const block = (blockHash & this.blockMask) << 3;
     //in case we get that [Object object] bs
 
@@ -112,8 +112,8 @@ export class FrequencySketch {
   private reset(): void {
     let count = 0;
     for (let i = 0; i < this.table.length; i++) {
-      count += bitCount(this.table[i][0] & this.ONE_MASK) +
-        bitCount(this.table[i][1] & this.ONE_MASK);
+      count += this.bitCount(this.table[i][0] & this.ONE_MASK) +
+        this.bitCount(this.table[i][1] & this.ONE_MASK);
       this.table[i][0] = (this.table[i][0] >>> 1) & this.RESET_MASK;
       this.table[i][1] = (this.table[i][1] >>> 1) & this.RESET_MASK;
     }

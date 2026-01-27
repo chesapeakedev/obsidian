@@ -1,5 +1,5 @@
 /** @format */
-import { pluralize } from "pluralize";
+import { pluralize } from "jsr:@wei/pluralize@8.0.2";
 
 import normalizeResult from "../normalizeResult.ts";
 import destructureQueries from "../destructure.ts";

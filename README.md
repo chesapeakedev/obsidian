@@ -18,11 +18,11 @@
   <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/open-source-labs/obsidian?style=social">
 </p>
 
-## todo
+## Package Status
 
-- [ ] publish on jsr
-- [ ] add tests for client
-- [ ] refactor "server", is it redundant with new client?
+- [x] Published to JSR as separate packages
+- [x] Client package with comprehensive tests
+- [x] Server package with Redis caching
 
 ## Features
 
@@ -60,54 +60,62 @@ solution.
 
 ## Installation
 
-<div align="center"><strong>QUICK START</strong></div>
-<br>
+Obsidian is published as a single package:
 
-## Creating the Router
+- **@chesapeake/obsidian-gql** - GraphQL client and server with intelligent
+  caching
+
+### Install Package
 
 ```typescript
-import { gql, ObsidianService } from "https://deno.land/x/obsidian/mod.ts";
-import { resolvers } from "./ import from your resolvers file";
-import { types } from "./ import your schema/types from schema/types file";
+import {
+  gql,
+  ObsidianClient,
+  ObsidianService,
+} from "jsr:@chesapeake/obsidian-gql";
+```
+
+## Package Structure
+
+This repository is organized as a single Deno package:
+
+```
+obsidian/
+├── src/
+│   ├── server/             # Server-side code (ObsidianService, Redis caching)
+│   └── client/            # Client-side code (ObsidianClient, in-memory caching)
+├── _test/                  # Test files
+│   ├── server/             # Server tests
+│   └── client/             # Client tests
+├── examples/               # Example code
+└── deno.json               # Package configuration
+```
+
+## Server Usage
+
+### Quick Start - Server
+
+```typescript
+import { gql, ObsidianService } from "jsr:@chesapeake/obsidian-gql";
+import { resolvers } from "./resolvers.ts";
+import { types } from "./schema/types.ts";
 
 // Create the GraphQL handler
 const handler = await ObsidianService({
-  typeDefs: types, // graphQL typeDefs
-  resolvers: resolvers, // graphQL resolvers
+  typeDefs: types,
+  resolvers: resolvers,
 });
 
 // Start the server with Deno.serve
 Deno.serve({ port: 8000 }, handler);
 ```
 
-## Selecting options for the Router
+## Client Usage
 
-```javascript
-const handler = await ObsidianService({
-  path: "/graphql", // endpoint for graphQL queries, default to '/graphql'
-  typeDefs: types, // graphQL typeDefs
-  resolvers: resolvers, // graphQL resolvers
-  usePlayground: true, // Boolean to allow for graphQL playground, default to false
-  useCache: true, // Boolean to toggle all cache functionality, default to true
-  redisPort: 6379, // Desired redis port, default to 6379
-  policy: "allkeys-lru", // Option select your Redis policy, default to allkeys-lru
-  maxmemory: "2000mb", // Option to select Redis capacity, default to 2000mb
-  searchTerms: [], //Optional array to allow broad queries to store according to search fields so individual searches are found in cache
-  persistQueries: true, //Boolean to toggle the use of persistent queries, default to false - NOTE: if using, must also be enabled in client wrapper
-  hashTableSize: 16, // Size of hash table for persistent queries, default to 16
-  maxQueryDepth: 0, // Maximum depth of query, default to 0
-  customIdentifier: ["__typename", "_id"], // keys to be used to idedntify and normalize object
-  mutationTableMap: {}, //Object where keys are add mutation types and value is an array of affected tables (e.g. {addPlants: ['plants'], addMovie: ['movies']})
-});
-
-// Start the server
-Deno.serve({ port: 8000 }, handler);
-```
-
-## Creating the Client
+### Quick Start - Client
 
 ```typescript
-import { ObsidianClient } from "https://deno.land/x/obsidian/mod.ts";
+import { ObsidianClient } from "jsr:@chesapeake/obsidian-gql";
 
 // Create a client instance
 const client = new ObsidianClient({
@@ -127,7 +135,7 @@ const client = new ObsidianClient({
 ## Making a Query
 
 ```typescript
-import { ObsidianClient } from "https://deno.land/x/obsidian/mod.ts";
+import { ObsidianClient } from "jsr:@chesapeake/obsidian-gql";
 
 const client = new ObsidianClient({
   endpoint: "/graphql",
@@ -152,7 +160,7 @@ console.log(response.data);
 ## Making a Mutation
 
 ```typescript
-import { ObsidianClient } from "https://deno.land/x/obsidian/mod.ts";
+import { ObsidianClient } from "jsr:@chesapeake/obsidian-gql";
 
 const client = new ObsidianClient({
   endpoint: "/graphql",
