@@ -30,7 +30,11 @@ export class Cache {
   }
 
   // METHOD TO CONNECT TO CACHE
-  async connect(port: number, policy: string, maxmemory: string): Promise<void> {
+  async connect(
+    port: number,
+    policy: string,
+    maxmemory: string,
+  ): Promise<void> {
     this.redis = await connect({
       hostname: Deno.env.get("REDIS_HOST"),
       port: port,
@@ -131,7 +135,10 @@ export class Cache {
   }
 
   // CURRENTLY BEING UTILIZED BY invalidateCacheCheck.ts, WHICH IS A FILE THAT SHOULD BE REFACTORED IN FUTURE ITERATION
-  cacheWriteObject = async (hash: string, obj: Record<string, any>): Promise<void> => {
+  cacheWriteObject = async (
+    hash: string,
+    obj: Record<string, any>,
+  ): Promise<void> => {
     let entries = Object.entries(obj).flat();
     entries = entries.map((entry) => JSON.stringify(entry));
     // adding as nested strings? take out one layer for clarity.
@@ -139,7 +146,10 @@ export class Cache {
   };
 
   // CURRENTLY BEING UTILIZED BY invalidateCacheCheck.ts, WHICH IS A FILE THAT SHOULD BE REFACTORED IN FUTURE ITERATION
-  cacheReadObject = async (hash: string, fields: string[] = []): Promise<any> => {
+  cacheReadObject = async (
+    hash: string,
+    fields: string[] = [],
+  ): Promise<any> => {
     // Checks for the fields requested, then queries cache for those specific keys in the hashes
     if (fields.length !== 0) {
       const fieldObj: Record<string, any> = {};

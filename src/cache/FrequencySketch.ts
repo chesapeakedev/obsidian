@@ -56,7 +56,8 @@ export class FrequencySketch {
       const row = index % 2;
       const offset = h & 1;
       count[i] =
-        (this.table[block + offset + (i << 1)][row] >>> ((index >> 1) << 2)) & 15;
+        (this.table[block + offset + (i << 1)][row] >>> ((index >> 1) << 2)) &
+        15;
     }
     return Math.min(...count);
   }

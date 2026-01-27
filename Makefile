@@ -1,6 +1,6 @@
 SHELL := bash
 
-.PHONY: lint format format_check lint_deno fmt_deno fmt_deno_check check_deno
+.PHONY: sync lint format format_check lint_deno fmt_deno fmt_deno_check check_deno
 
 # Combined linting targets
 # Note: lint also runs formatting to ensure code is properly formatted before linting
@@ -50,3 +50,7 @@ check_deno:
 	@echo "✅ Running full Deno checks (fmt + lint + typecheck)..."
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@deno task check
+
+sync: ./repo_sync.sh
+	$(SHELL) ./repo_sync.sh
+

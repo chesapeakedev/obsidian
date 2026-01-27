@@ -40,7 +40,7 @@ export default class WTinyLFUCache {
       let winner = WLRUCandidate;
       if (
         this.SLRU.probationaryLRU.nodeHash.size >=
-        Math.floor(this.SLRU.probationaryLRU.capacity)
+          Math.floor(this.SLRU.probationaryLRU.capacity)
       ) {
         // send the last accessed item in the probationary cache to the TinyLFU
         const SLRUCandidate = this.SLRU.probationaryLRU.getCandidate();
@@ -102,7 +102,9 @@ export default class WTinyLFUCache {
 
   // read from the cache and generate a response object to be populated with values from cache
   async read(queryStr: string): Promise<any> {
-    if (typeof queryStr !== "string") throw TypeError("input should be a string");
+    if (typeof queryStr !== "string") {
+      throw TypeError("input should be a string");
+    }
     // destructure the query string into an object
     const queries = destructureQueries(queryStr).queries;
     // breaks out of function if queryStr is a mutation
@@ -169,10 +171,14 @@ export default class WTinyLFUCache {
               resFromNormalize[hash],
             );
           } else {
-            const typeName = deleteMutation.slice(0, deleteMutation.indexOf("~"));
+            const typeName = deleteMutation.slice(
+              0,
+              deleteMutation.indexOf("~"),
+            );
             for (const key in this.ROOT_QUERY) {
               if (
-                key.includes(typeName + "s") || key.includes(pluralize(typeName))
+                key.includes(typeName + "s") ||
+                key.includes(pluralize(typeName))
               ) {
                 for (let i = 0; i < this.ROOT_QUERY[key].length; i++) {
                   if (this.ROOT_QUERY[key][i] === deleteMutation) {

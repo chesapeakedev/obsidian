@@ -1,6 +1,6 @@
 /**
  * Example usage of ObsidianClient with GitHub GraphQL API
- * 
+ *
  * To run this example:
  * 1. Set GITHUB_TOKEN environment variable: export GITHUB_TOKEN=your_token
  * 2. Run: deno run --allow-net --allow-env examples/client-example.ts

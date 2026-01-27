@@ -1,12 +1,15 @@
 /**
  * Tests for ObsidianClient using GitHub GraphQL API
- * 
+ *
  * To run these tests:
  * 1. Set GITHUB_TOKEN environment variable with a valid GitHub personal access token
  * 2. Run: deno test --allow-net --allow-env test_files/rhum_test_files/client_test.ts
  */
 
-import { assertEquals, assertExists } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertExists,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { ObsidianClient } from "../../src/Client/ObsidianClient.ts";
 
 // GitHub GraphQL API endpoint
@@ -23,7 +26,7 @@ function createGitHubClient(options?: {
 }) {
   if (!GITHUB_TOKEN) {
     throw new Error(
-      "GITHUB_TOKEN environment variable is required. Set it with: export GITHUB_TOKEN=your_token"
+      "GITHUB_TOKEN environment variable is required. Set it with: export GITHUB_TOKEN=your_token",
     );
   }
 
@@ -62,7 +65,11 @@ Deno.test("ObsidianClient: Basic query without cache", async () => {
 });
 
 Deno.test("ObsidianClient: Query with LFU cache", async () => {
-  const client = createGitHubClient({ useCache: true, algo: "LFU", capacity: 100 });
+  const client = createGitHubClient({
+    useCache: true,
+    algo: "LFU",
+    capacity: 100,
+  });
 
   const query = `
     query {
@@ -97,7 +104,11 @@ Deno.test("ObsidianClient: Query with LFU cache", async () => {
 });
 
 Deno.test("ObsidianClient: Query with LRU cache", async () => {
-  const client = createGitHubClient({ useCache: true, algo: "LRU", capacity: 100 });
+  const client = createGitHubClient({
+    useCache: true,
+    algo: "LRU",
+    capacity: 100,
+  });
 
   const query = `
     query {
@@ -304,4 +315,3 @@ Deno.test("ObsidianClient: Error handling", async () => {
   assertEquals(Array.isArray(response.errors), true);
   assertEquals(response.errors.length > 0, true);
 });
-

@@ -277,7 +277,9 @@ export function findClosingBrace(str: string, index: number): number {
 }
 
 // helper function to find fragments
-export function destructureQueriesWithFragments(queryOperationStr: string): string {
+export function destructureQueriesWithFragments(
+  queryOperationStr: string,
+): string {
   // create a copy of the input to mutate
   let queryCopy = queryOperationStr;
   // declare an array to hold all fragments

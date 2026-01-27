@@ -9,10 +9,10 @@ export { gql, ObsidianService };
 
 // Client-side exports
 export {
+  type CacheAlgorithm,
+  type GraphQLResponse,
+  type MutationOptions,
   ObsidianClient,
   type ObsidianClientOptions,
   type QueryOptions,
-  type MutationOptions,
-  type GraphQLResponse,
-  type CacheAlgorithm,
 } from "./src/Client/ObsidianClient.ts";

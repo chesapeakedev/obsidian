@@ -87,7 +87,9 @@ export default class LRUCache {
 
   // read from the cache and generate a response object to be populated with values from cache
   async read(queryStr: string): Promise<any> {
-    if (typeof queryStr !== "string") throw TypeError("input should be a string");
+    if (typeof queryStr !== "string") {
+      throw TypeError("input should be a string");
+    }
     // destructure the query string into an object
     const queries = destructureQueries(queryStr).queries;
     // breaks out of function if queryStr is a mutation
@@ -147,10 +149,14 @@ export default class LRUCache {
               resFromNormalize[hash],
             );
           } else {
-            const typeName = deleteMutation.slice(0, deleteMutation.indexOf("~"));
+            const typeName = deleteMutation.slice(
+              0,
+              deleteMutation.indexOf("~"),
+            );
             for (const key in this.ROOT_QUERY) {
               if (
-                key.includes(typeName + "s") || key.includes(pluralize(typeName))
+                key.includes(typeName + "s") ||
+                key.includes(pluralize(typeName))
               ) {
                 for (let i = 0; i < this.ROOT_QUERY[key].length; i++) {
                   if (this.ROOT_QUERY[key][i] === deleteMutation) {

@@ -158,6 +158,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@wei/pluralize@8.0.2",
       "npm:@graphql-tools/schema@^10.0.31",
       "npm:graphql-playground-html@^1.6.30",
       "npm:graphql-tag@^2.12.6",

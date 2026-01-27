@@ -104,7 +104,10 @@ function createRootQuery(
 }
 
 //returns a hash value pair of each response obj passed in
-function createHash(obj: any, output: Record<string, any> = {}): Record<string, any> {
+function createHash(
+  obj: any,
+  output: Record<string, any> = {},
+): Record<string, any> {
   const hash = labelId(obj);
   //if output doesnt have a key of hash create a new obj with that hash key
   if (!output[hash]) output[hash] = {};

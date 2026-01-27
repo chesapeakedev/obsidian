@@ -1,6 +1,7 @@
 # ObsidianClient
 
-A TypeScript GraphQL client with intelligent caching, designed to work with Deno and any JavaScript/TypeScript environment.
+A TypeScript GraphQL client with intelligent caching, designed to work with Deno
+and any JavaScript/TypeScript environment.
 
 ## Features
 
@@ -169,13 +170,17 @@ client.stopAllPolling();
 ## Cache Algorithms
 
 ### LFU (Least Frequently Used) - Default
+
 Tracks access frequency and evicts least frequently used items.
 
 ### LRU (Least Recently Used)
+
 Tracks recency and evicts least recently accessed items.
 
 ### W-TinyLFU
-Advanced algorithm with frequency sketch and admission window for better hit rates.
+
+Advanced algorithm with frequency sketch and admission window for better hit
+rates.
 
 ## Testing
 
@@ -188,21 +193,25 @@ deno test --allow-net --allow-env test_files/rhum_test_files/client_test.ts
 
 ## Migration from React Provider
 
-If you're migrating from the React `ObsidianProvider`, the new client API is similar:
+If you're migrating from the React `ObsidianProvider`, the new client API is
+similar:
 
 **Before (React):**
+
 ```typescript
 const { query, mutate } = useObsidian();
 const response = await query(queryString);
 ```
 
 **After (TypeScript Client):**
+
 ```typescript
 const client = new ObsidianClient(options);
 const response = await client.query(queryString);
 ```
 
 The main differences:
+
 - No React Context needed
 - Direct instantiation instead of Provider wrapper
 - Same query/mutate API
