@@ -8,9 +8,9 @@ import {
 import {
   detransformResponse as _detransformResponse,
   transformResponse,
-} from "../test_variables/transformResponseLight.ts";
-import { test } from "../test_variables/transformResponse_variables.ts";
-import { Cache as _Cache } from "../test_variables/quickCacheLight.js";
+} from "../_test_variables/server/transformResponseLight.ts";
+import { test } from "../_test_variables/server/transformResponse_variables.ts";
+import { Cache as _Cache } from "../_test_variables/server/quickCacheLight.ts";
 
 // transformResponse
 Deno.test("transformResponse - expected transformation to work on nested response objects", () => {

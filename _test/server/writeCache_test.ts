@@ -8,7 +8,7 @@
  *
  */
 
-import { Cache } from "../../_test_variables/server/quickCacheLight.js";
+import { Cache } from "../../_test_variables/server/quickCacheLight.ts";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test } from "../../_test_variables/server/writeCache_variables.ts";
 

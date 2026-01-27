@@ -6,7 +6,7 @@ import {
   isHashableObject,
 } from "../../src/server/normalize.ts";
 import { GenericObject } from "../../src/server/normalize.ts";
-import { Cache } from "./quickCacheLight.js";
+import { Cache } from "./quickCacheLight.ts";
 const cache = new Cache();
 
 const isArrayOfHashableObjects = (

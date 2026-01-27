@@ -2,7 +2,7 @@
  * NOTES:
  * This file will test the read and write method on the Cache class functionality.
  */
-import { Cache } from "../_test_variables/server/quickCacheLight.js";
+import { Cache } from "../_test_variables/server/quickCacheLight.ts";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test as testWrite } from "../_test_variables/server/writeCache_variables.ts";
 import { test as testRead } from "../_test_variables/server/readCache_variables.ts";

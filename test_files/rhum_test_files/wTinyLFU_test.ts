@@ -1,4 +1,4 @@
-import WTinyLFUCache from "../test_variables/wTinyLFU_variables.js";
+import WTinyLFUCache from "../test_variables/wTinyLFU_variables.ts";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 
 Rhum.testPlan("WTinyLFU cache functionality", () => {
