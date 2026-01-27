@@ -1,15 +1,15 @@
 import { pluralize } from "pluralize";
 
-import normalizeResult from "./normalizeResult.ts";
-import destructureQueries from "./destructure.ts";
+import normalizeResult from "../normalizeResult.ts";
+import destructureQueries from "../destructure.ts";
 
 class Node {
   key: string;
-  value: any;
+  value: unknown;
   next: Node | null;
   prev: Node | null;
 
-  constructor(key: string, value: any) {
+  constructor(key: string, value: unknown) {
     this.key = key;
     this.value = value;
     this.next = this.prev = null;
@@ -19,8 +19,8 @@ class Node {
 export default class LRUCache {
   capacity: number;
   currentSize: number;
-  ROOT_QUERY: Record<string, any>;
-  ROOT_MUTATION: Record<string, any>;
+  ROOT_QUERY: Record<string, unknown>;
+  ROOT_MUTATION: Record<string, unknown>;
   nodeHash: Map<string, Node>;
   head: Node;
   tail: Node;
@@ -56,7 +56,7 @@ export default class LRUCache {
     node.prev = tempTail;
   }
 
-  get(key: string): any {
+  get(key: string): unknown {
     const node = this.nodeHash.get(key);
 
     // check if node does not exist in nodeHash obj
@@ -67,7 +67,7 @@ export default class LRUCache {
     return node.value;
   }
 
-  put(key: string, value: any): void {
+  put(key: string, value: unknown): void {
     // remove node from old position
     const node = this.nodeHash.get(key);
     if (node) this.removeNode(node);
@@ -86,7 +86,7 @@ export default class LRUCache {
   }
 
   // read from the cache and generate a response object to be populated with values from cache
-  async read(queryStr: string): Promise<any> {
+  async read(queryStr: string): Promise<unknown> {
     if (typeof queryStr !== "string") {
       throw TypeError("input should be a string");
     }
@@ -94,7 +94,7 @@ export default class LRUCache {
     const queries = destructureQueries(queryStr).queries;
     // breaks out of function if queryStr is a mutation
     if (!queries) return undefined;
-    const responseObject: Record<string, any> = {};
+    const responseObject: Record<string, unknown> = {};
     // iterate through each query in the input queries object
     for (const query in queries) {
       // get the entire str query from the name input query and arguments
@@ -124,21 +124,33 @@ export default class LRUCache {
 
   async write(
     queryStr: string,
-    respObj: any,
+    respObj: unknown,
     searchTerms?: string[],
     deleteFlag?: boolean,
   ): Promise<void> {
+    if (typeof respObj !== "object" || respObj === null) {
+      return;
+    }
+    const respObjRecord = respObj as Record<string, unknown>;
+    if (!respObjRecord.data || typeof respObjRecord.data !== "object") {
+      return;
+    }
+    const dataRecord = respObjRecord.data as Record<string, unknown>;
     let nullFlag = false;
     let deleteMutation = "";
-    for (const query in respObj.data) {
-      if (respObj.data[query] === null) nullFlag = true;
+    for (const query in dataRecord) {
+      if (dataRecord[query] === null) nullFlag = true;
       else if (query.toLowerCase().includes("delete")) {
-        deleteMutation = labelId(respObj.data[query]);
+        deleteMutation = labelId(dataRecord[query]);
       }
     }
     if (!nullFlag) {
       const queryObj = destructureQueries(queryStr);
-      const resFromNormalize = normalizeResult(queryObj, respObj, deleteFlag);
+      const resFromNormalize = normalizeResult(
+        queryObj,
+        respObjRecord,
+        deleteFlag,
+      );
       // update the original cache with same reference
       for (const hash in resFromNormalize) {
         const resp = await this.get(hash);
@@ -158,10 +170,13 @@ export default class LRUCache {
                 key.includes(typeName + "s") ||
                 key.includes(pluralize(typeName))
               ) {
-                for (let i = 0; i < this.ROOT_QUERY[key].length; i++) {
-                  if (this.ROOT_QUERY[key][i] === deleteMutation) {
-                    this.ROOT_QUERY[key].splice(i, 1);
-                    i--;
+                const rootQueryValue = this.ROOT_QUERY[key];
+                if (Array.isArray(rootQueryValue)) {
+                  for (let i = 0; i < rootQueryValue.length; i++) {
+                    if (rootQueryValue[i] === deleteMutation) {
+                      rootQueryValue.splice(i, 1);
+                      i--;
+                    }
                   }
                 }
               }
@@ -180,7 +195,10 @@ export default class LRUCache {
             if (
               key.includes(typeName + "s") || key.includes(pluralize(typeName))
             ) {
-              this.ROOT_QUERY[key].push(hash);
+              const rootQueryValue = this.ROOT_QUERY[key];
+              if (Array.isArray(rootQueryValue)) {
+                rootQueryValue.push(hash);
+              }
             }
           }
           /****
@@ -190,12 +208,24 @@ export default class LRUCache {
            * that future single queries can be looked up directly from the cache
            ****/
           if (searchTerms && queryStr.slice(8, 11) === "all") {
-            searchTerms.forEach((el) => {
-              const elVal = resFromNormalize[hash][el].replaceAll(" ", "");
-              const hashKey = `one${typeName}(${el}:"${elVal}")`;
-              if (!this.ROOT_QUERY[hashKey]) this.ROOT_QUERY[hashKey] = [];
-              this.ROOT_QUERY[hashKey].push(hash);
-            });
+            const hashValue = resFromNormalize[hash];
+            if (typeof hashValue === "object" && hashValue !== null) {
+              const hashValueRecord = hashValue as Record<string, unknown>;
+              searchTerms.forEach((el) => {
+                const elValRaw = hashValueRecord[el];
+                if (typeof elValRaw === "string") {
+                  const elVal = elValRaw.replaceAll(" ", "");
+                  const hashKey = `one${typeName}(${el}:"${elVal}")`;
+                  if (!this.ROOT_QUERY[hashKey]) {
+                    this.ROOT_QUERY[hashKey] = [];
+                  }
+                  const rootQueryValue = this.ROOT_QUERY[hashKey];
+                  if (Array.isArray(rootQueryValue)) {
+                    rootQueryValue.push(hash);
+                  }
+                }
+              });
+            }
           }
         }
       }
@@ -205,34 +235,44 @@ export default class LRUCache {
   // fills in placeholder data in response object with values found in cache
   async populateAllHashes(
     allHashesFromQuery: string[],
-    fields: any,
-  ): Promise<any[]> {
+    fields: unknown,
+  ): Promise<unknown[]> {
     if (!allHashesFromQuery.length) return [];
     const hyphenIdx = allHashesFromQuery[0].indexOf("~");
     const typeName = allHashesFromQuery[0].slice(0, hyphenIdx);
-    const reduction = allHashesFromQuery.reduce(async (acc, hash) => {
+    const reduction = await allHashesFromQuery.reduce(async (acc, hash) => {
       // for each hash from the input query, build the response object
       const readVal = await this.get(hash);
       if (readVal === "DELETED") return acc;
       if (!readVal) return undefined;
-      const dataObj: Record<string, any> = {};
-      for (const field in fields) {
-        if (readVal[field] === "DELETED") continue;
+      const dataObj: Record<string, unknown> = {};
+      if (typeof fields !== "object" || fields === null) {
+        return undefined;
+      }
+      const fieldsRecord = fields as Record<string, unknown>;
+      const readValRecord = readVal as Record<string, unknown>;
+      for (const field in fieldsRecord) {
+        if (readValRecord[field] === "DELETED") continue;
         // for each field in the fields input query, add the corresponding value from the cache if the field is not another array of hashs
-        if (readVal[field] === undefined && field !== "__typename") {
+        if (readValRecord[field] === undefined && field !== "__typename") {
           return undefined;
         }
-        if (typeof fields[field] !== "object") {
+        if (typeof fieldsRecord[field] !== "object") {
           // add the typename for the type
           if (field === "__typename") {
             dataObj[field] = typeName;
-          } else dataObj[field] = readVal[field];
+          } else dataObj[field] = readValRecord[field];
         } else {
           // case where the field from the input query is an array of hashes, recursively invoke populateAllHashes
-          dataObj[field] = await this.populateAllHashes(
-            readVal[field],
-            fields[field],
-          );
+          const fieldValue = readValRecord[field];
+          if (Array.isArray(fieldValue)) {
+            dataObj[field] = await this.populateAllHashes(
+              fieldValue as string[],
+              fieldsRecord[field],
+            );
+          } else {
+            return undefined;
+          }
           if (dataObj[field] === undefined) return undefined;
         }
       }
@@ -245,7 +285,12 @@ export default class LRUCache {
   }
 }
 
-function labelId(obj: any): string {
-  const id = obj.id || obj.ID || obj._id || obj._ID || obj.Id || obj._Id;
-  return obj.__typename + "~" + id;
+function labelId(obj: unknown): string {
+  if (typeof obj !== "object" || obj === null) {
+    throw new Error("labelId expects an object");
+  }
+  const objRecord = obj as Record<string, unknown>;
+  const id = objRecord.id || objRecord.ID || objRecord._id || objRecord._ID ||
+    objRecord.Id || objRecord._Id;
+  return String(objRecord.__typename) + "~" + String(id);
 }

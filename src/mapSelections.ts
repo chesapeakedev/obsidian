@@ -3,26 +3,38 @@
 import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
-const gql = gqlModule.default as (query: string) => any;
+const gql = gqlModule.default as (query: string) => unknown;
 
 export function mapSelectionSet(query: string): string[] {
   // Gets fields from query and stores all in an array - used to selectively query cache
   const selectionKeysMap: Record<string, string> = {};
-  const ast = gql(query);
+  const ast = gql(query) as {
+    definitions: Array<{
+      selectionSet: { selections: Array<Record<string, unknown>> };
+    }>;
+  };
   const selections = ast.definitions[0].selectionSet.selections;
-  const tableName = selections[0].name.value;
+  const tableName = (selections[0].name as { value: string }).value;
 
-  const recursiveMap = (recurseSelections: any[]): void => {
+  const recursiveMap = (recurseSelections: unknown[]): void => {
     for (const selection of recurseSelections) {
-      if (selection.name && selection.name.value) {
-        selectionKeysMap[selection.name.value] = selection.name.value;
+      const sel = selection as Record<string, unknown>;
+      if (sel.name && (sel.name as { value: string }).value) {
+        selectionKeysMap[(sel.name as { value: string }).value] =
+          (sel.name as { value: string }).value;
       }
-      if (selection.alias && selection.alias.value) {
-        selectionKeysMap[selection.alias.value] = selection.name.value;
+      if (sel.alias && (sel.alias as { value: string }).value) {
+        selectionKeysMap[(sel.alias as { value: string }).value] =
+          (sel.name as { value: string }).value;
       }
 
-      if (selection.selectionSet && selection.selectionSet.selections) {
-        recursiveMap(selection.selectionSet.selections);
+      if (
+        sel.selectionSet &&
+        (sel.selectionSet as { selections: unknown[] }).selections
+      ) {
+        recursiveMap(
+          (sel.selectionSet as { selections: unknown[] }).selections,
+        );
       }
     }
   };

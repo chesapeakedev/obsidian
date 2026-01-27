@@ -11,7 +11,6 @@
 import LFUCache from "../../src/cache/lfuCache.ts";
 import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
 import { test } from "../test_variables/lfuBrowserCache_variables.ts";
-import normalizeResult from "../../src/normalizeResult.ts";
 
 Rhum.testPlan("LFU Browser Cache Testing", () => {
   Rhum.testSuite("write/read nested data object", () => {
@@ -20,7 +19,7 @@ Rhum.testPlan("LFU Browser Cache Testing", () => {
       async () => {
         const cache = new LFUCache(10);
         await cache.write(test.nestedObj.queryStr, test.nestedObj.respObj);
-        for (let key of Object.keys(test.nestedObj.expectedCache)) {
+        for (const key of Object.keys(test.nestedObj.expectedCache)) {
           await Rhum.asserts.assertEquals(
             cache.get(key),
             test.nestedObj.expectedCache[key],

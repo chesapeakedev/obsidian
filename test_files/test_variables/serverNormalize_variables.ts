@@ -1,6 +1,6 @@
 // import { containsHashableObject, printHashableObject } from "../../src/normalize";
 
-export const serverNormalizeTestVariables: any = {};
+export const serverNormalizeTestVariables: Record<string, unknown> = {};
 
 serverNormalizeTestVariables.containsHashableObjFalse1 = [
   "id",

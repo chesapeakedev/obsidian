@@ -84,7 +84,7 @@ Deno.test("ObsidianClient: Query with LFU cache", async () => {
   // First query - cache miss
   const start1 = Date.now();
   const response1 = await client.query(query);
-  const time1 = Date.now() - start1;
+  const _time1 = Date.now() - start1;
 
   assertExists(response1.data);
   assertExists(response1.data.viewer);
@@ -92,7 +92,7 @@ Deno.test("ObsidianClient: Query with LFU cache", async () => {
   // Second query - should be cache hit
   const start2 = Date.now();
   const response2 = await client.query(query);
-  const time2 = Date.now() - start2;
+  const _time2 = Date.now() - start2;
 
   // Cache hit should be faster (or at least return data)
   assertExists(response2.data);

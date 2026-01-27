@@ -1,4 +1,4 @@
-export const test: { [index: string]: any } = {
+export const test: { [index: string]: unknown } = {
   nestedObj: {
     queryStr: `query movie { 
       Movie(id:1) {

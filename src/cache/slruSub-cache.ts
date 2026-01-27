@@ -16,7 +16,7 @@ export default class SLRUCache {
 
   // Get item from cache, updates last access,
   // and promotes existing items to protected
-  get(key: string): any {
+  get(key: string): unknown {
     // get the item from the protectedLRU
     const protectedItem = this.protectedLRU.get(key);
     // check to see if the item is in the probationaryLRU
@@ -36,7 +36,7 @@ export default class SLRUCache {
   }
 
   // add or update item in cache
-  put(key: string, node: any): void {
+  put(key: string, node: unknown): void {
     // if the item is in the protected segment, update it
     if (this.protectedLRU.nodeHash.get(key)) this.putAndDemote(key, node);
     else if (this.probationaryLRU.nodeHash.get(key)) {
@@ -55,7 +55,7 @@ export default class SLRUCache {
   }
 
   // Adds a node to the protectedLRU
-  putAndDemote(key: string, value: any): void {
+  putAndDemote(key: string, value: unknown): void {
     // if adding an item to the protectedLRU results in ejection, demote ejected node
     const demoted = this.protectedLRU.put(key, value);
     if (demoted) this.probationaryLRU.put(demoted.key, demoted.value);

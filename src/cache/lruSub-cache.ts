@@ -1,12 +1,10 @@
-import { pluralize } from "pluralize";
-
 class Node {
   key: string;
-  value: any;
+  value: unknown;
   next: Node | null;
   prev: Node | null;
 
-  constructor(key: string, value: any) {
+  constructor(key: string, value: unknown) {
     this.key = key;
     this.value = value;
     this.next = this.prev = null;
@@ -19,7 +17,7 @@ export default class LRUCache {
   nodeHash: Map<string, Node>;
   head: Node;
   tail: Node;
-  sketch?: any; // FrequencySketch
+  sketch?: unknown; // FrequencySketch
 
   constructor(capacity: number) {
     this.capacity = capacity;
@@ -51,7 +49,7 @@ export default class LRUCache {
   }
 
   // Like get, but doesn't update anything
-  peek(key: string): any {
+  peek(key: string): unknown {
     const node = this.nodeHash.get(key);
     if (!node) return null;
     return node.value;
@@ -68,7 +66,7 @@ export default class LRUCache {
     this.nodeHash.delete(key);
   }
 
-  get(key: string): any {
+  get(key: string): unknown {
     const node = this.nodeHash.get(key);
 
     // check if node does not exist in nodeHash obj
@@ -80,14 +78,17 @@ export default class LRUCache {
   }
 
   // used by wTinyLFU to get SLRU eviction candidates for TinyLFU decision
-  getCandidate(): { key: string; value: any } {
+  getCandidate(): { key: string; value: unknown } {
     const tempHead = this.head.next!;
     this.removeNode(tempHead);
     this.nodeHash.delete(tempHead.key);
     return { key: tempHead.key, value: tempHead.value };
   }
 
-  put(key: string, value: any): { key: string; value: any } | undefined {
+  put(
+    key: string,
+    value: unknown,
+  ): { key: string; value: unknown } | undefined {
     // create a new node
     const newNode = new Node(key, value);
 

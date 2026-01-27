@@ -11,8 +11,8 @@
 // this function will destructure a query/mutation operation string into a query/mutation operation object
 export function destructureQueries(
   queryOperationStr: string,
-  queryOperationVars?: Record<string, any>,
-): any {
+  queryOperationVars?: Record<string, unknown>,
+): Record<string, unknown> {
   // Trims blocks of extra white space into a single white space for uniformity
   // of incoming queryOperationStrings
   queryOperationStr = queryOperationStr.replace(/\s+/g, " ").trim();
@@ -90,10 +90,10 @@ export function findQueryStrings(queryStrings: string): string[] {
 export function createQueriesObj(
   arrayOfQueryStrings: string[],
   typePropName: string,
-  queryVars?: Record<string, any>,
-): any {
+  queryVars?: Record<string, unknown>,
+): Record<string, unknown> {
   // define a new empty result object
-  const queriesObj: any = {};
+  const queriesObj: Record<string, unknown> = {};
   queriesObj[typePropName] = [];
   // for each query string
   arrayOfQueryStrings.forEach((queryStr: string) => {
@@ -111,10 +111,10 @@ export function createQueriesObj(
 // helper function that returns an object with a query string split into multiple parts
 export function splitUpQueryStr(
   queryStr: string,
-  queryVars?: Record<string, any>,
-): any {
+  queryVars?: Record<string, unknown>,
+): Record<string, unknown> {
   // creates new queryObj
-  const queryObj: any = {};
+  const queryObj: Record<string, unknown> = {};
   let parensPairs = 0;
   const argsStartIndex = queryStr.indexOf("(");
   const firstBraceIndex = queryStr.indexOf("{");
@@ -180,7 +180,7 @@ export function splitUpQueryStr(
 // helper function to manipulate query args string by replacing variables
 export function replaceQueryVariables(
   queryArgs: string,
-  variables: Record<string, any>,
+  variables: Record<string, unknown>,
 ): string {
   // indexes of start ($) & end of variable name
   let varStartIndex: number | undefined;
@@ -222,8 +222,8 @@ export function replaceQueryVariables(
 }
 
 // helper function to recursively convert the fields string to a fields object
-export function findQueryFields(fieldsStr: string): any {
-  const fieldsObj: any = {};
+export function findQueryFields(fieldsStr: string): Record<string, unknown> {
+  const fieldsObj: Record<string, unknown> = {};
   let fieldCache = "";
   let foundEndOfFieldName = false;
   // starts at index 1 to skip first open brace
@@ -350,7 +350,7 @@ export function destructureQueriesWithFragments(
 // fields depending on the value of the variable passed in
 export function destructureQueriesWithDirectives(
   queryStr: string,
-  queryVars?: Record<string, any>,
+  queryVars?: Record<string, unknown>,
 ): string {
   // starting point of iteration over queryStr
   let startIndex = queryStr.indexOf("{");
@@ -437,7 +437,7 @@ export function destructureQueriesWithDirectives(
       if (!includeQueryField) {
         // index of the beginning of a fields body (if the field was of
         // non-scalar type and has nested fields)
-        let startBodyIndex = i + 2;
+        const startBodyIndex = i + 2;
 
         // boolean indicating whether a field has nested fields (more fields
         // within '{' and '}')

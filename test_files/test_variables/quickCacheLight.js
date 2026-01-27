@@ -75,19 +75,19 @@ export class Cache {
 
   cacheReadObject = async (hash, field) => {
     if (field) {
-      let returnValue = await redis.hget(hash, JSON.stringify(field));
+      const returnValue = await redis.hget(hash, JSON.stringify(field));
 
       if (returnValue === undefined) return undefined;
       return JSON.parse(returnValue);
     } else {
-      let objArray = await redis.hgetall(hash);
+      const objArray = await redis.hgetall(hash);
       if (objArray.length == 0) return undefined;
-      let parsedArray = objArray.map((entry) => JSON.parse(entry));
+      const parsedArray = objArray.map((entry) => JSON.parse(entry));
 
       if (parsedArray.length % 2 !== 0) {
         return undefined;
       }
-      let returnObj = {};
+      const returnObj = {};
       for (let i = 0; i < parsedArray.length; i += 2) {
         returnObj[parsedArray[i]] = parsedArray[i + 1];
       }
@@ -97,10 +97,10 @@ export class Cache {
   };
 
   createBigHash(inputfromQuery) {
-    let ast = gql(inputfromQuery);
+    const ast = gql(inputfromQuery);
 
-    let returned = visit(ast, { enter: print(ast) });
-    let finalReturn = print(returned);
+    const returned = visit(ast, { enter: print(ast) });
+    const finalReturn = print(returned);
     return JSON.stringify(finalReturn);
   }
 
@@ -125,7 +125,7 @@ export class Cache {
           await redis.set("ROOT_MUTATION", JSON.stringify({}));
         }
       }
-      let hashedQuery = await redis.get(hash);
+      const hashedQuery = await redis.get(hash);
       console.log("Response from redis -> ", hashedQuery);
 
       if (hashedQuery === undefined) return undefined;
@@ -139,7 +139,6 @@ export class Cache {
     } else {
       value = JSON.stringify(value);
       await redis.setex(hash, 6000, value);
-      let hashedQuery = await redis.get(hash);
     }
   }
 
@@ -148,7 +147,7 @@ export class Cache {
   }
 
   async cacheReadList(hash) {
-    let cachedArray = await redis.lrange(hash, 0, -1);
+    const cachedArray = await redis.lrange(hash, 0, -1);
     return cachedArray;
   }
 

@@ -11,7 +11,7 @@
  */
 
 export const containsHashableObject = (
-  objectInQuestion: any,
+  objectInQuestion: unknown,
   hashableKeys: Array<string>,
 ): boolean => {
   if (
@@ -37,7 +37,7 @@ export const containsHashableObject = (
  * @return {boolean} Boolean indicating if objectInQuestion is hashable or not
  */
 export const isHashableObject = (
-  objectInQuestion: any,
+  objectInQuestion: unknown,
   hashableKeys: Array<string>,
 ): boolean => {
   if (!containsHashableObject(objectInQuestion, hashableKeys)) return false;
@@ -49,7 +49,7 @@ export const isHashableObject = (
 /* ----------------------------------------------------------------*/
 
 /* ----------------------------------------------------------------*/
-export type GenericObject = { [key: string]: any };
+export type GenericObject = { [key: string]: unknown };
 type FlatObject = { [key: string]: string | number | boolean };
 /** hashMaker -
  * Creates unique hash string for an object with hashable keys with hashable object passed in
@@ -85,7 +85,7 @@ export const printHashableObject = (
   for (const key in containsHashableObject) {
     if (
       typeof containsHashableObject[key] !== "object" &&
-      !hashObj.hasOwnProperty(key)
+      !Object.prototype.hasOwnProperty.call(hashObj, key)
     ) {
       hashObj[key] = containsHashableObject[key];
     }
@@ -129,7 +129,9 @@ export const normalizeObject = (
       hasAlreadyPrinted = true;
       const hashableObject = printHashableObject(nestedObject);
       const hash = hashMaker(hashableObject, hashableKeys);
-      if (!normalizedHashableObjects.hasOwnProperty(hash)) {
+      if (
+        !Object.prototype.hasOwnProperty.call(normalizedHashableObjects, hash)
+      ) {
         normalizedHashableObjects[hash] = hashableObject;
       }
     }

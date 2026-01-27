@@ -2,16 +2,18 @@
 import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
-const gql = gqlModule.default as (query: string) => any;
+const gql = gqlModule.default as (query: string) => unknown;
 import { visit } from "graphql";
 import { scope } from "./Obsidian.ts";
-import { Cache } from "./cache/quickCache.ts";
 
-function isObject(object: any): boolean {
+function isObject(object: unknown): boolean {
   return object != null && typeof object === "object";
 }
 
-export function deepEqual(object1: any, object2: any): boolean {
+export function deepEqual(
+  object1: Record<string, unknown>,
+  object2: Record<string, unknown>,
+): boolean {
   const keys1 = Object.keys(object1);
   const keys2 = Object.keys(object2);
   if (keys1.length !== keys2.length) {
@@ -40,7 +42,11 @@ export function deepEqual(object1: any, object2: any): boolean {
  */
 export function isMutation(gqlQuery: { query: string }): boolean {
   let isMutation: boolean = false;
-  let ast: any = gql(gqlQuery.query);
+  const ast = gql(gqlQuery.query) as {
+    definitions: Array<{
+      selectionSet: { selections: Array<Record<string, unknown>> };
+    }>;
+  };
 
   const checkMutationVisitor: object = {
     OperationDefinition: (node: { operation: string }) => {
@@ -54,6 +60,7 @@ export function isMutation(gqlQuery: { query: string }): boolean {
   const subscriptionTunnelVisitor = {
     OperationDefinition: (node: { operation: string }) => {
       if (node.operation === "subscription") {
+        // Subscription handling can be implemented here in the future
       }
     },
   };
@@ -78,7 +85,7 @@ export async function invalidateCache(
   mutationTableMap: Record<string, unknown>,
 ) {
   let normalizedData: object;
-  let cachedVal: any;
+  let cachedVal: Record<string, unknown> | undefined;
 
   // Common case is that we get one mutation at a time. But it's possible to group multiple mutation queries into one.
   // That's why the for loop is needed
@@ -97,7 +104,15 @@ export async function invalidateCache(
       // We overwrite the existing cache value or write new data if cache at that key doesn't exist
       // Edge case: update is done without changing any values... cache will be deleted from redis because the response obj and cached obj will be equal
       if (cachedVal === undefined) { // checks if add mutation
-        let ast = gql(queryString);
+        const ast = gql(queryString) as {
+          definitions: Array<{
+            selectionSet: {
+              selections: Array<{
+                name: { value: string };
+              }>;
+            };
+          }>;
+        };
         const mutationType =
           ast.definitions[0].selectionSet.selections[0].name.value; // Extracts mutationType from query string
 

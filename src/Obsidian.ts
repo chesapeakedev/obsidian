@@ -6,14 +6,14 @@ import queryDepthLimiter from "./DoSSecurity.ts";
 import { restructure } from "./restructure.ts";
 import { normalizeObject } from "./normalize.ts";
 import { invalidateCache, isMutation } from "./invalidateCacheCheck.ts";
-import { mapSelectionSet } from "./mapSelections.ts";
+import { mapSelectionSet as _mapSelectionSet } from "./mapSelections.ts";
 import { HashTable } from "./queryHash.ts";
 
 export interface ObsidianServiceOptions {
   path?: string;
-  typeDefs: any;
+  typeDefs: unknown;
   resolvers: ResolversProps;
-  context?: (req: Request) => any | Promise<any>;
+  context?: (req: Request) => unknown | Promise<unknown>;
   usePlayground?: boolean;
   useCache?: boolean;
   redisPort?: number;
@@ -28,13 +28,13 @@ export interface ObsidianServiceOptions {
 }
 
 export interface ResolversProps {
-  Query?: any;
-  Mutation?: any;
-  [dynamicProperty: string]: any;
+  Query?: unknown;
+  Mutation?: unknown;
+  [dynamicProperty: string]: unknown;
 }
 
 // Export developer chosen port for redis database connection //
-export let redisPortExport: number = 6379;
+export const redisPortExport: number = 6379;
 
 // tentative fix to get invalidateCacheCheck.ts access to the cache;
 export const scope: Record<string, unknown> = {};
@@ -44,7 +44,7 @@ export const scope: Record<string, unknown> = {};
  * @param options Configuration options for the Obsidian Service
  * @returns A handler function that can be used with Deno.serve
  */
-export async function ObsidianService({
+export function ObsidianService({
   path = "/graphql",
   typeDefs,
   resolvers,
@@ -86,7 +86,7 @@ export async function ObsidianService({
     if (req.method === "POST") {
       try {
         let queryStr;
-        let body: any = {};
+        let body: Record<string, unknown> = {};
 
         // Parse request body
         if (req.body) {
@@ -121,16 +121,23 @@ export async function ObsidianService({
         const contextResult = context ? await context(req) : undefined;
         // const selectedFields = mapSelectionSet(queryStr); // Gets requested fields from query and saves into an array
         if (maxQueryDepth) queryDepthLimiter(queryStr, maxQueryDepth); // If a securty limit is set for maxQueryDepth, invoke queryDepthLimiter, which throws error if query depth exceeds maximum
-        let restructuredBody = { query: restructure({ query: queryStr }) }; // Restructure gets rid of variables and fragments from the query
+        const restructuredBody = { query: restructure({ query: queryStr }) }; // Restructure gets rid of variables and fragments from the query
 
         // IF WE ARE USING A CACHE
         if (useCache) {
-          let cacheQueryValue = await cache.read(queryStr); // Parses query string into query key and checks cache for that key
+          const cacheQueryValue = await cache.read(queryStr); // Parses query string into query key and checks cache for that key
 
           // ON CACHE MISS
           if (!cacheQueryValue) {
             // QUERY THE DATABASE
-            const gqlResponse = await (graphql as any)(
+            const gqlResponse = await (graphql as (
+              schema: unknown,
+              source: string,
+              rootValue?: unknown,
+              contextValue?: unknown,
+              variableValues?: unknown,
+              operationName?: string,
+            ) => Promise<unknown>)(
               schema,
               queryStr,
               resolvers,
@@ -175,7 +182,14 @@ export async function ObsidianService({
           // IF NOT USING A CACHE
         } else {
           // DIRECTLY QUERY THE DATABASE
-          const gqlResponse = await (graphql as any)(
+          const gqlResponse = await (graphql as (
+            schema: unknown,
+            source: string,
+            rootValue?: unknown,
+            contextValue?: unknown,
+            variableValues?: unknown,
+            operationName?: string,
+          ) => Promise<unknown>)(
             schema,
             queryStr,
             resolvers,
@@ -216,7 +230,7 @@ export async function ObsidianService({
       const prefersHTML = acceptHeader.includes("text/html");
 
       if (prefersHTML) {
-        const optionsObj: any = {
+        const optionsObj: Record<string, unknown> = {
           "schema.polling.enable": false, // enables automatic schema polling
         };
 

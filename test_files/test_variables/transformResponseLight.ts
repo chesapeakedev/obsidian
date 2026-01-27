@@ -33,7 +33,7 @@ const isArrayOfHashableObjects = (
  * @return {GenericObject} Nested object representing an object of references, where the references are hashes in Redis
  */
 export const transformResponse = (
-  responseObject: any,
+  responseObject: GenericObject,
   hashableKeys: Array<string>,
 ): GenericObject => {
   const result: GenericObject = {};
@@ -46,7 +46,7 @@ export const transformResponse = (
     for (const key in responseObject) {
       if (isArrayOfHashableObjects(responseObject[key], hashableKeys)) {
         for (const element of responseObject[key]) {
-          let hash = hashMaker(element, hashableKeys);
+          const hash = hashMaker(element, hashableKeys);
           result[hash] = transformResponse(element, hashableKeys);
         }
       }
@@ -63,7 +63,7 @@ export const transformResponse = (
  * @return {GenericObject} Nested object representing the original graphQL response object for a given queryKey
  */
 export const detransformResponse = async (
-  queryKey: String,
+  queryKey: string,
   transformedValue: GenericObject,
 ): Promise<GenericObject> => {
   // remove all text within parentheses aka '(input: ...)'
@@ -82,17 +82,17 @@ export const detransformResponse = async (
     depth: number = 0,
   ): Promise<GenericObject> => {
     const result: GenericObject = {};
-    let currDepth = depth;
+    const currDepth = depth;
 
     console.log("tv-> ", transformedValue);
     // base case: innermost object with key:value pair of hash:{}
     if (Object.keys(transformedValue).length === 0) {
       return result;
     } else {
-      let currField: string = fields[currDepth];
+      const currField: string = fields[currDepth];
       result[currField] = [];
 
-      for (let hash in transformedValue) {
+      for (const hash in transformedValue) {
         console.log("hash -> ", hash);
         const redisValue: GenericObject = await cache.cacheReadObject(hash);
         console.log("redisVal -> ", redisValue);

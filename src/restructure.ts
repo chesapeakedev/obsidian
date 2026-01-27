@@ -1,7 +1,7 @@
 import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
-const gql = gqlModule.default as (query: string) => any;
+const gql = gqlModule.default as (query: string) => unknown;
 import { print, visit } from "graphql";
 
 /**
@@ -13,66 +13,80 @@ import { print, visit } from "graphql";
  * @param  {any} value - Query string
  * @return {string} string
  */
-export function restructure(value: any) {
+export function restructure(
+  value: {
+    query: string;
+    variables?: Record<string, unknown>;
+    operationName?: string;
+  },
+) {
   const variables = value.variables || {};
   const operationName = value.operationName;
 
-  let ast = gql(value.query);
+  let ast = gql(value.query) as {
+    definitions: Array<Record<string, unknown>>;
+  };
 
-  let fragments: { [key: string]: any } = {};
+  let fragments: { [key: string]: unknown } = {};
   let containsFrags: boolean = false;
-  let existingFrags: { [key: string]: any } = {};
-  let existingVars: { [key: string]: any } = {};
+  const existingFrags: { [key: string]: unknown } = {};
+  const existingVars: { [key: string]: unknown } = {};
 
   const buildFragsVisitor = {
-    FragmentDefinition: (node: any) => {
-      fragments[node.name.value] = node.selectionSet.selections;
+    FragmentDefinition: (node: Record<string, unknown>) => {
+      fragments[(node.name as { value: string }).value] =
+        (node.selectionSet as { selections: unknown }).selections;
     },
   };
   const buildDefaultVarsVisitor = {
-    VariableDefinition: (node: any) => {
+    VariableDefinition: (node: Record<string, unknown>) => {
       if (node.defaultValue) {
-        if (!variables[node.variable.name.value]) {
-          variables[node.variable.name.value] = node.defaultValue.value;
+        const varName = (node.variable as { name: { value: string } }).name
+          .value;
+        if (!variables[varName]) {
+          variables[varName] = (node.defaultValue as { value: unknown }).value;
         }
       }
     },
   };
 
   const rewriteVarsVistor = {
-    VariableDefinition: (node: any) => {
+    VariableDefinition: (_node: Record<string, unknown>) => {
       return null;
     },
-    Variable: (node: any) => {
-      if (variables.hasOwnProperty(node.name.value)) {
-        return { kind: "EnumValue", value: variables[node.name.value] };
+    Variable: (node: Record<string, unknown>) => {
+      const varName = (node.name as { value: string }).value;
+      if (Object.prototype.hasOwnProperty.call(variables, varName)) {
+        return { kind: "EnumValue", value: variables[varName] };
       }
     },
   };
 
   const rewriteVisitor = {
-    FragmentSpread: (node: any) => {
-      if (fragments.hasOwnProperty(node.name.value)) {
-        return fragments[node.name.value];
+    FragmentSpread: (node: Record<string, unknown>) => {
+      const fragName = (node.name as { value: string }).value;
+      if (Object.prototype.hasOwnProperty.call(fragments, fragName)) {
+        return fragments[fragName];
       }
     },
   };
 
   const clearFragVisitor = {
-    FragmentDefinition: (node: any) => {
-      if (fragments.hasOwnProperty(node.name.value)) {
+    FragmentDefinition: (node: Record<string, unknown>) => {
+      const fragName = (node.name as { value: string }).value;
+      if (Object.prototype.hasOwnProperty.call(fragments, fragName)) {
         return null;
       }
     },
   };
   const checkFragmentationVisitor = {
-    FragmentSpread: (node: any) => {
+    FragmentSpread: (node: Record<string, unknown>) => {
       containsFrags = true;
-      existingFrags[node.name.value] = true;
+      existingFrags[(node.name as { value: string }).value] = true;
     },
-    Variable: (node: any) => {
+    Variable: (node: Record<string, unknown>) => {
       containsFrags = true;
-      existingVars[node.name.value] = true;
+      existingVars[(node.name as { value: string }).value] = true;
     },
   };
 
@@ -84,12 +98,14 @@ export function restructure(value: any) {
   const firstRewriteVisitor = {
     ...rewriteVisitor,
     ...rewriteVarsVistor,
-    OperationDefinition: (node: any) => {
-      if (operationName && node.name.value != operationName) {
+    OperationDefinition: (node: Record<string, unknown>) => {
+      if (
+        operationName && (node.name as { value: string }).value != operationName
+      ) {
         return null;
       }
     },
-    InlineFragment: (node: any) => {
+    InlineFragment: (node: Record<string, unknown>) => {
       return [
         {
           kind: "Field",
@@ -106,14 +122,18 @@ export function restructure(value: any) {
 
   visit(ast, { leave: firstBuildVisitor });
 
-  ast = gql(print(visit(ast, { leave: firstRewriteVisitor })));
+  ast = gql(print(visit(ast, { leave: firstRewriteVisitor }))) as {
+    definitions: Array<Record<string, unknown>>;
+  };
   visit(ast, { leave: checkFragmentationVisitor });
   while (containsFrags) {
     containsFrags = false;
     fragments = {};
     visit(ast, { enter: buildFragsVisitor });
 
-    ast = gql(print(visit(ast, { leave: firstRewriteVisitor })));
+    ast = gql(print(visit(ast, { leave: firstRewriteVisitor }))) as {
+      definitions: Array<Record<string, unknown>>;
+    };
     visit(ast, { leave: checkFragmentationVisitor });
 
     //if existingFrags has a key that fragments does not

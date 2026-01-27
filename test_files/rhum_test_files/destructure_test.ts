@@ -4,7 +4,6 @@ import destructureQueries, {
   findClosingBrace,
   findQueryFields,
   findQueryStrings,
-  splitUpQueryStr,
 } from "../../src/destructure.ts";
 import { test } from "../test_variables/destructure_variables.ts";
 

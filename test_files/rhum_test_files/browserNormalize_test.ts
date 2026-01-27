@@ -6,7 +6,7 @@ Rhum.testPlan("normalize.ts", () => {
   Rhum.testSuite("normalizeTestSuite", () => {
     Rhum.testCase(
       "expected result to equal object with ROOT_QUERY and hash:value pairs",
-      async () => {
+      () => {
         const result = normalizeResult(test.queryObject1, test.resultObject1);
         Rhum.asserts.assertEquals(result, test.resultObj1);
       },
@@ -15,7 +15,7 @@ Rhum.testPlan("normalize.ts", () => {
   Rhum.testSuite("normalizeAliasTestSuite", () => {
     Rhum.testCase(
       "expected result to equal object with ROOT_QUERY and hash:value pairs",
-      async () => {
+      () => {
         const result = normalizeResult(
           test.aliasTestQueryObj,
           test.aliasTestResult,

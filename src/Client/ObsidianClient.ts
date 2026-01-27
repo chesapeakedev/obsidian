@@ -5,7 +5,7 @@
 
 import LFUCache from "../cache/lfuCache.ts";
 import LRUCache from "../cache/lruCache.ts";
-import WTinyLFUCache from "../wTinyLFUBrowserCache.ts";
+import WTinyLFUCache from "../cache/wTinyLFUBrowserCache.ts";
 import { insertTypenames } from "../insertTypenames.ts";
 
 export type CacheAlgorithm = "LFU" | "LRU" | "W-TinyLFU";
@@ -50,14 +50,17 @@ export interface MutationOptions {
   /** Delete flag for mutations */
   toDelete?: boolean;
   /** Update function for cache */
-  update?: (cache: any, responseObj: any) => void;
+  update?: (
+    cache: Record<string, unknown>,
+    responseObj: Record<string, unknown>,
+  ) => void;
   /** Write-through mode */
   writeThrough?: boolean;
   /** Custom headers to include in request (merged with client default headers) */
   headers?: Record<string, string>;
 }
 
-export interface GraphQLResponse<T = any> {
+export interface GraphQLResponse<T = unknown> {
   data?: T;
   errors?: Array<{
     message: string;
@@ -106,12 +109,11 @@ export class ObsidianClient {
   /**
    * Execute a GraphQL query
    */
-  async query<T = any>(
+  async query<T = unknown>(
     query: string,
     options: QueryOptions = {},
   ): Promise<GraphQLResponse<T>> {
     const startTime = Date.now();
-    const startDate = new Date(Date.now());
 
     const {
       endpoint = this.endpoint,
@@ -138,20 +140,16 @@ export class ObsidianClient {
     if (cacheRead && this.caching && this.cache) {
       let resObj;
       if (wholeQuery && "readWholeQuery" in this.cache) {
-        resObj = await (this.cache as any).readWholeQuery(query);
+        const cacheWithWholeQuery = this.cache as {
+          readWholeQuery: (query: string) => unknown;
+        };
+        resObj = cacheWithWholeQuery.readWholeQuery(query);
       } else {
         resObj = await this.cache.read(query);
       }
 
       if (resObj) {
-        const cacheHitResponseTime = Date.now() - startTime;
-        this.postMessage({
-          type: "query",
-          time: cacheHitResponseTime,
-          date: startDate.toDateString().slice(0, 24),
-          query: query,
-          hit: true,
-        });
+        const _cacheHitResponseTime = Date.now() - startTime;
         return Promise.resolve(resObj);
       }
     }
@@ -163,7 +161,6 @@ export class ObsidianClient {
       cacheWrite,
       wholeQuery,
       startTime,
-      startDate,
       options.headers,
     );
   }
@@ -171,11 +168,11 @@ export class ObsidianClient {
   /**
    * Execute a GraphQL mutation
    */
-  async mutate<T = any>(
+  async mutate<T = unknown>(
     mutation: string,
     options: MutationOptions = {},
   ): Promise<GraphQLResponse<T>> {
-    const startTime = Date.now();
+    const _startTime = Date.now();
     const mutationWithTypenames = insertTypenames(mutation);
 
     const {
@@ -202,7 +199,7 @@ export class ObsidianClient {
           if (cacheWrite && this.cache && responseObj.data) {
             const firstKey = Object.keys(responseObj.data)[0];
             const firstValue =
-              (responseObj.data as Record<string, any>)[firstKey];
+              (responseObj.data as Record<string, unknown>)[firstKey];
             if (firstValue !== null) {
               await this.cache.write(
                 mutationWithTypenames,
@@ -226,7 +223,7 @@ export class ObsidianClient {
           if (cacheWrite && this.cache && responseObj.data) {
             const firstKey = Object.keys(responseObj.data)[0];
             const firstValue =
-              (responseObj.data as Record<string, any>)[firstKey];
+              (responseObj.data as Record<string, unknown>)[firstKey];
             if (firstValue !== null) {
               await this.cache.write(
                 mutationWithTypenames,
@@ -269,7 +266,7 @@ export class ObsidianClient {
         if (!responseObj.errors && responseObj.data) {
           const firstKey = Object.keys(responseObj.data)[0];
           const firstValue =
-            (responseObj.data as Record<string, any>)[firstKey];
+            (responseObj.data as Record<string, unknown>)[firstKey];
           if (firstValue !== null) {
             await this.cache.write(
               mutationWithTypenames,
@@ -326,7 +323,6 @@ export class ObsidianClient {
     cacheWrite: boolean,
     wholeQuery: boolean,
     startTime: number,
-    startDate: Date,
     customHeaders?: Record<string, string>,
   ): Promise<GraphQLResponse<T>> {
     const queryWithTypenames = wholeQuery ? query : insertTypenames(query);
@@ -410,13 +406,7 @@ export class ObsidianClient {
       }
 
       const cacheMissResponseTime = Date.now() - startTime;
-      this.postMessage({
-        type: "query",
-        time: cacheMissResponseTime,
-        date: startDate.toDateString().slice(0, 24),
-        query: queryWithTypenames,
-        hit: false,
-      });
+      console.log(cacheMissResponseTime);
 
       return resObj;
     } catch (e) {
@@ -447,17 +437,5 @@ export class ObsidianClient {
     });
 
     return await resJSON.json();
-  }
-
-  /**
-   * Post message for devtools (if in browser environment)
-   */
-  private postMessage(message: any): void {
-    if (typeof window !== "undefined") {
-      const win = window as any;
-      if (win.postMessage) {
-        win.postMessage(message, "*");
-      }
-    }
   }
 }

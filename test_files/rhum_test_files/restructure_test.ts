@@ -5,9 +5,9 @@ import { test } from "../test_variables/restructure_variables.ts";
 import * as gqlModule from "npm:graphql-tag@^2.12.0";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
-const gql = gqlModule.default as (query: string) => any;
+const gql = gqlModule.default as (query: string) => unknown;
 //import {concatInlineFragments, parseFragmentToInlineFragment} from "https://deno.land/x/oak_graphql/graphql-tools/utils/fragments.ts";
-import { print, visit } from "npm:graphql@^15.0.0";
+import { print } from "npm:graphql@^15.0.0";
 
 // Testing  Fragments  with two Seperate queries
 

@@ -2,7 +2,6 @@ import {
   assert,
   assertEquals,
   assertStrictEquals,
-  equal,
 } from "https://deno.land/std/testing/asserts.ts";
 import {
   containsHashableObject,

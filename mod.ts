@@ -2,7 +2,7 @@ import { ObsidianService } from "./src/Obsidian.ts";
 import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
-const gql = gqlModule.default as (query: string) => any;
+const gql = gqlModule.default as (query: string) => unknown;
 
 // Server-side exports
 export { gql, ObsidianService };

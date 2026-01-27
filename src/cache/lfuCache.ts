@@ -1,17 +1,17 @@
 /** @format */
 import { pluralize } from "pluralize";
 
-import normalizeResult from "./normalizeResult.ts";
-import destructureQueries from "./destructure.ts";
+import normalizeResult from "../normalizeResult.ts";
+import destructureQueries from "../destructure.ts";
 
 class Node {
   key: string;
-  val: any;
+  val: unknown;
   next: Node | null;
   prev: Node | null;
   freq: number;
 
-  constructor(key: string, value: any) {
+  constructor(key: string, value: unknown) {
     this.key = key; // 'Actor~1
     this.val = value; // {id:1, name:harrison, ....}
     this.next = this.prev = null;
@@ -62,8 +62,8 @@ export default class LFUCache {
   capacity: number;
   currentSize: number;
   leastFreq: number;
-  ROOT_QUERY: Record<string, any>;
-  ROOT_MUTATION: Record<string, any>;
+  ROOT_QUERY: Record<string, unknown>;
+  ROOT_MUTATION: Record<string, unknown>;
   nodeHash: Map<string, Node>;
   freqHash: Map<number, DoublyLinkedList>;
   callTime: number;
@@ -83,8 +83,8 @@ export default class LFUCache {
    * @param {string} key
    * @return {object}
    */
-  get(key: string): any {
-    let node = this.nodeHash.get(key);
+  get(key: string): unknown {
+    const node = this.nodeHash.get(key);
     // if node is not found return undefined so that Obsidian will pull new data from graphQL
     if (!node) return undefined;
     this.freqHash.get(node.freq)!.removeNode(node);
@@ -107,18 +107,18 @@ export default class LFUCache {
    * @param {object} value
    * @return {void}
    */
-  put(key: string, value: any): void {
+  put(key: string, value: unknown): void {
     if (this.capacity == 0) return;
-    let node = this.nodeHash.get(key);
+    const node = this.nodeHash.get(key);
     if (!node) {
       // new node
       this.currentSize++;
       if (this.currentSize > this.capacity) {
-        let tailKey = this.freqHash.get(this.leastFreq)!.removeTail();
+        const tailKey = this.freqHash.get(this.leastFreq)!.removeTail();
         this.nodeHash.delete(tailKey);
         this.currentSize--;
       }
-      let newNode = new Node(key, value);
+      const newNode = new Node(key, value);
       // freqHash housekeeping
       if (this.freqHash.get(1) == null) {
         this.freqHash.set(1, new DoublyLinkedList());
@@ -145,7 +145,7 @@ export default class LFUCache {
     }
   }
 
-  async read(queryStr: string): Promise<any> {
+  async read(queryStr: string): Promise<unknown> {
     if (typeof queryStr !== "string") {
       throw TypeError("input should be a string");
     }
@@ -153,7 +153,7 @@ export default class LFUCache {
     const queries = destructureQueries(queryStr).queries;
     // breaks out of function if queryStr is a mutation
     if (!queries) return undefined;
-    const responseObject: Record<string, any> = {};
+    const responseObject: Record<string, unknown> = {};
     // iterate through each query in the input queries object
     for (const query in queries) {
       // get the entire str query from the name input query and arguments
@@ -183,21 +183,33 @@ export default class LFUCache {
 
   async write(
     queryStr: string,
-    respObj: any,
+    respObj: unknown,
     searchTerms?: string[],
     deleteFlag?: boolean,
   ): Promise<void> {
+    if (typeof respObj !== "object" || respObj === null) {
+      return;
+    }
+    const respObjRecord = respObj as Record<string, unknown>;
+    if (!respObjRecord.data || typeof respObjRecord.data !== "object") {
+      return;
+    }
+    const dataRecord = respObjRecord.data as Record<string, unknown>;
     let nullFlag = false;
     let deleteMutation = "";
-    for (const query in respObj.data) {
-      if (respObj.data[query] === null) nullFlag = true;
+    for (const query in dataRecord) {
+      if (dataRecord[query] === null) nullFlag = true;
       else if (query.toLowerCase().includes("delete")) {
-        deleteMutation = labelId(respObj.data[query]);
+        deleteMutation = labelId(dataRecord[query]);
       }
     }
     if (!nullFlag) {
       const queryObj = destructureQueries(queryStr);
-      const resFromNormalize = normalizeResult(queryObj, respObj, deleteFlag);
+      const resFromNormalize = normalizeResult(
+        queryObj,
+        respObjRecord,
+        deleteFlag,
+      );
       // update the original cache with same reference
       for (const hash in resFromNormalize) {
         const resp = await this.get(hash);
@@ -217,10 +229,13 @@ export default class LFUCache {
                 key.includes(typeName + "s") ||
                 key.includes(pluralize(typeName))
               ) {
-                for (let i = 0; i < this.ROOT_QUERY[key].length; i++) {
-                  if (this.ROOT_QUERY[key][i] === deleteMutation) {
-                    this.ROOT_QUERY[key].splice(i, 1);
-                    i--;
+                const rootQueryValue = this.ROOT_QUERY[key];
+                if (Array.isArray(rootQueryValue)) {
+                  for (let i = 0; i < rootQueryValue.length; i++) {
+                    if (rootQueryValue[i] === deleteMutation) {
+                      rootQueryValue.splice(i, 1);
+                      i--;
+                    }
                   }
                 }
               }
@@ -239,7 +254,10 @@ export default class LFUCache {
             if (
               key.includes(typeName + "s") || key.includes(pluralize(typeName))
             ) {
-              this.ROOT_QUERY[key].push(hash);
+              const rootQueryValue = this.ROOT_QUERY[key];
+              if (Array.isArray(rootQueryValue)) {
+                rootQueryValue.push(hash);
+              }
             }
           }
           /****
@@ -249,12 +267,24 @@ export default class LFUCache {
            * that future single queries can be looked up directly from the cache
            ****/
           if (searchTerms && queryStr.slice(8, 11) === "all") {
-            searchTerms.forEach((el) => {
-              const elVal = resFromNormalize[hash][el].replaceAll(" ", "");
-              const hashKey = `one${typeName}(${el}:"${elVal}")`;
-              if (!this.ROOT_QUERY[hashKey]) this.ROOT_QUERY[hashKey] = [];
-              this.ROOT_QUERY[hashKey].push(hash);
-            });
+            const hashValue = resFromNormalize[hash];
+            if (typeof hashValue === "object" && hashValue !== null) {
+              const hashValueRecord = hashValue as Record<string, unknown>;
+              searchTerms.forEach((el) => {
+                const elValRaw = hashValueRecord[el];
+                if (typeof elValRaw === "string") {
+                  const elVal = elValRaw.replaceAll(" ", "");
+                  const hashKey = `one${typeName}(${el}:"${elVal}")`;
+                  if (!this.ROOT_QUERY[hashKey]) {
+                    this.ROOT_QUERY[hashKey] = [];
+                  }
+                  const rootQueryValue = this.ROOT_QUERY[hashKey];
+                  if (Array.isArray(rootQueryValue)) {
+                    rootQueryValue.push(hash);
+                  }
+                }
+              });
+            }
           }
         }
       }
@@ -277,53 +307,63 @@ export default class LFUCache {
     this.freqHash = new Map();
   }
 
-  writeWholeQuery(queryStr: string, respObj: any): any {
+  writeWholeQuery(queryStr: string, respObj: unknown): unknown {
     const hash = queryStr.replace(/\s/g, "");
-    this.put(this.ROOT_QUERY[hash], respObj);
+    this.put(hash, respObj);
     return respObj;
   }
 
-  readWholeQuery(queryStr: string): any {
+  readWholeQuery(queryStr: string): unknown {
     const hash = queryStr.replace(/\s/g, "");
-    if (this.ROOT_QUERY[hash]) return this.get(this.ROOT_QUERY[hash]);
+    if (this.ROOT_QUERY[hash]) return this.get(hash);
     return undefined;
   }
 
-  async populateAllHashes(
+  populateAllHashes(
     allHashesFromQuery: string[],
-    fields: any,
-  ): Promise<any[]> {
-    if (!allHashesFromQuery.length) return [];
+    fields: unknown,
+  ): Promise<unknown[]> {
+    if (!allHashesFromQuery.length) return Promise.resolve([]);
     const hyphenIdx = allHashesFromQuery[0].indexOf("~");
     const typeName = allHashesFromQuery[0].slice(0, hyphenIdx);
-    const reduction = allHashesFromQuery.reduce(async (acc, hash) => {
+    const reduction = allHashesFromQuery.reduce((acc, hash) => {
       // for each hash from the input query, build the response object
-      const readVal = await this.get(hash);
+      const readVal = this.get(hash);
       if (readVal === "DELETED") return acc;
       if (!readVal) return undefined;
-      const dataObj: Record<string, any> = {};
-      for (const field in fields) {
-        if (readVal[field] === "DELETED") continue;
+      const dataObj: Record<string, unknown> = {};
+      if (typeof fields !== "object" || fields === null) {
+        return undefined;
+      }
+      const fieldsRecord = fields as Record<string, unknown>;
+      const readValRecord = readVal as Record<string, unknown>;
+      for (const field in fieldsRecord) {
+        if (readValRecord[field] === "DELETED") continue;
         // for each field in the fields input query, add the corresponding value from the cache if the field is not another array of hashs
-        if (readVal[field] === undefined && field !== "__typename") {
+        if (readValRecord[field] === undefined && field !== "__typename") {
           return undefined;
         }
-        if (typeof fields[field] !== "object") {
+        if (typeof fieldsRecord[field] !== "object") {
           // add the typename for the type
           if (field === "__typename") {
             dataObj[field] = typeName;
-          } else dataObj[field] = readVal[field];
+          } else dataObj[field] = readValRecord[field];
         } else {
           // case where the field from the input query is an array of hashes, recursively invoke populateAllHashes
-          dataObj[field] = await this.populateAllHashes(
-            readVal[field],
-            fields[field],
-          );
+          const fieldValue = readValRecord[field];
+          if (Array.isArray(fieldValue)) {
+            dataObj[field] = this.populateAllHashes(
+              fieldValue as string[],
+              fieldsRecord[field],
+            );
+          } else {
+            return undefined;
+          }
           if (dataObj[field] === undefined) return undefined;
         }
       }
       // acc is an array of response object for each hash
-      const resolvedProm = await Promise.resolve(acc);
+      const resolvedProm = Promise.resolve(acc);
       resolvedProm.push(dataObj);
       return resolvedProm;
     }, Promise.resolve([]));
@@ -331,7 +371,12 @@ export default class LFUCache {
   }
 }
 
-function labelId(obj: any): string {
-  const id = obj.id || obj.ID || obj._id || obj._ID || obj.Id || obj._Id;
-  return obj.__typename + "~" + id;
+function labelId(obj: unknown): string {
+  if (typeof obj !== "object" || obj === null) {
+    throw new Error("labelId expects an object");
+  }
+  const objRecord = obj as Record<string, unknown>;
+  const id = objRecord.id || objRecord.ID || objRecord._id || objRecord._ID ||
+    objRecord.Id || objRecord._Id;
+  return String(objRecord.__typename) + "~" + String(id);
 }
