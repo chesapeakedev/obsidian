@@ -10,35 +10,35 @@
  * Should return an array of field objects if all the elements are found in the cache.
  */
 
-import Cache from '../../src/Browser/CacheClassBrowser.js';
-import { Rhum } from 'https://deno.land/x/rhum@v1.1.11/mod.ts';
-import { test } from '../test_variables/readCache_variables.ts';
+import Cache from "../../src/Browser/CacheClassBrowser.js";
+import { Rhum } from "https://deno.land/x/rhum@v1.1.11/mod.ts";
+import { test } from "../test_variables/readCache_variables.ts";
 
-Rhum.testPlan('read method on Cache class', () => {
-  Rhum.testSuite('read()', () => {
+Rhum.testPlan("read method on Cache class", () => {
+  Rhum.testSuite("read()", () => {
     Rhum.testCase(
-      '\n *** \n readCache_test \n should return a graphql response object if all required values are found in the cache',
+      "\n *** \n readCache_test \n should return a graphql response object if all required values are found in the cache",
       async () => {
         const cache = new Cache(test.cache);
         const result = await cache.read(test.singularInputQuery);
         Rhum.asserts.assertEquals(result, test.singularQueryResObj);
-      }
+      },
     );
     Rhum.testCase(
-      'should return undefined if any field is missing a value in the cache',
+      "should return undefined if any field is missing a value in the cache",
       async () => {
         const cache = new Cache(test.cache);
         const result = await cache.read(test.undefinedInputQuery);
         Rhum.asserts.assertEquals(result, undefined);
-      }
+      },
     );
     Rhum.testCase(
-      'should accept multiple queries in one query operation',
+      "should accept multiple queries in one query operation",
       async () => {
         const cache = new Cache(test.cache);
         const result = await cache.read(test.multipleInputQuery);
         Rhum.asserts.assertEquals(result, test.multipleQueriesResObj);
-      }
+      },
     );
     Rhum.testCase(
       "should ignore the elements with a 'DELETE' value and not throw a cache miss if asked for in the query string",
@@ -46,43 +46,43 @@ Rhum.testPlan('read method on Cache class', () => {
         const cache = new Cache(test.cache);
         const result = await cache.read(test.queryStrDelete);
         Rhum.asserts.assertEquals(result, test.multipleQueriesResObj);
-      }
+      },
     );
-    Rhum.testCase('should accept alias queries', async () => {
+    Rhum.testCase("should accept alias queries", async () => {
       const cache = new Cache(test.aliasCache);
       const result = await cache.read(test.aliasQueryString);
       Rhum.asserts.assertEquals(result, test.aliasResObj);
     });
   });
 
-  Rhum.testSuite('populateAllHashes()', () => {
+  Rhum.testSuite("populateAllHashes()", () => {
     Rhum.testCase(
-      'should return undefined if any field is missing from the cache',
+      "should return undefined if any field is missing from the cache",
       async () => {
         const cache = new Cache(test.cache);
         const result = await cache.populateAllHashes(
-          ['Actor~1'],
-          test.fieldsUndefined
+          ["Actor~1"],
+          test.fieldsUndefined,
         );
         Rhum.asserts.assertEquals(result, undefined);
-      }
+      },
     );
     Rhum.testCase(
-      'should return an array of field objects if all the elements are found in the cache',
+      "should return an array of field objects if all the elements are found in the cache",
       async () => {
         const cache = new Cache(test.cache);
         const result = await cache.populateAllHashes(
-          ['Actor~1'],
-          test.fieldsComplete
+          ["Actor~1"],
+          test.fieldsComplete,
         );
         Rhum.asserts.assertEquals(result, [
           {
-            __typename: 'Actor',
-            id: '1',
-            firstName: 'Harrison',
+            __typename: "Actor",
+            id: "1",
+            firstName: "Harrison",
           },
         ]);
-      }
+      },
     );
   });
 });

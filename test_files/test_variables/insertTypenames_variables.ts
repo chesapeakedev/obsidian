@@ -17,7 +17,7 @@ export const test = {
 `,
 
   singleQueryOutput:
-    'query AllActionMoviesAndAllActors { movies(input: { genre: ACTION }) { __typename id title genre actors { __typename  id firstName lastName } } } }',
+    "query AllActionMoviesAndAllActors { movies(input: { genre: ACTION }) { __typename id title genre actors { __typename  id firstName lastName } } } }",
 
   singleMutationInput: `
   mutation AllActionMoviesAndAllActors {
@@ -36,7 +36,7 @@ export const test = {
 `,
 
   singleMutationOutput:
-    'mutation AllActionMoviesAndAllActors { movies(input: { genre: ACTION }) { __typename  id title genre actors { __typename  id firstName lastName } } } }',
+    "mutation AllActionMoviesAndAllActors { movies(input: { genre: ACTION }) { __typename  id title genre actors { __typename  id firstName lastName } } } }",
 
   multipleQueriesInput: `
   query AllActionMoviesAndAllActors {
@@ -65,12 +65,12 @@ export const test = {
   }
 `,
   multipleQueriesOutput:
-    'query AllActionMoviesAndAllActors { movies(input: { genre: ACTION }) { __typename id title genre actors { __typename  id firstName lastName } } actors { __typename  id firstName lastName films { __typename id title } } } }',
+    "query AllActionMoviesAndAllActors { movies(input: { genre: ACTION }) { __typename id title genre actors { __typename  id firstName lastName } } actors { __typename  id firstName lastName films { __typename id title } } } }",
 
   fieldsStrInput:
-    '{ __typename id title genre actors { id firstName lastName } }',
+    "{ __typename id title genre actors { id firstName lastName } }",
   fieldsStrOutput:
-    '{ __typename id title genre actors { __typename  id firstName lastName } }',
+    "{ __typename id title genre actors { __typename  id firstName lastName } }",
 
   newAliasTestQuery: `
     query twoHeros {
@@ -82,5 +82,6 @@ export const test = {
       }
     }`,
 
-  newAliasTestResult: `query twoHeros { empireHero: hero(episode: EMPIRE) { __typename  name } jediHero: hero(episode: JEDI) { __typename  name } }`,
+  newAliasTestResult:
+    `query twoHeros { empireHero: hero(episode: EMPIRE) { __typename  name } jediHero: hero(episode: JEDI) { __typename  name } }`,
 };

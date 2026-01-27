@@ -17,17 +17,17 @@ export const test = {
   allActionTestResult: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(input:{genre:ACTION})',
+        name: "movies",
+        arguments: "(input:{genre:ACTION})",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
@@ -53,16 +53,16 @@ export const test = {
   allActorsTestResult: {
     queries: [
       {
-        name: 'actors',
-        arguments: '',
+        name: "actors",
+        arguments: "",
         fields: {
-          id: 'scalar',
-          firstName: 'scalar',
-          lastName: 'scalar',
+          id: "scalar",
+          firstName: "scalar",
+          lastName: "scalar",
           films: {
-            __typename: 'meta',
-            id: 'scalar',
-            title: 'scalar',
+            __typename: "meta",
+            id: "scalar",
+            title: "scalar",
           },
         },
       },
@@ -99,31 +99,31 @@ export const test = {
   allActionActorsTestResult: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(input:{genre:ACTION})',
+        name: "movies",
+        arguments: "(input:{genre:ACTION})",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
       {
-        name: 'actors',
-        arguments: '',
+        name: "actors",
+        arguments: "",
         fields: {
-          id: 'scalar',
-          firstName: 'scalar',
-          lastName: 'scalar',
+          id: "scalar",
+          firstName: "scalar",
+          lastName: "scalar",
           films: {
-            __typename: 'meta',
-            id: 'scalar',
-            title: 'scalar',
+            __typename: "meta",
+            id: "scalar",
+            title: "scalar",
           },
         },
       },
@@ -172,16 +172,16 @@ export const test = {
   createQueriesObjResultsData: {
     queries: [
       {
-        name: 'actors',
-        arguments: '',
+        name: "actors",
+        arguments: "",
         fields: {
-          id: 'scalar',
-          firstName: 'scalar',
-          lastName: 'scalar',
+          id: "scalar",
+          firstName: "scalar",
+          lastName: "scalar",
           films: {
-            __typename: 'meta',
-            id: 'scalar',
-            title: 'scalar',
+            __typename: "meta",
+            id: "scalar",
+            title: "scalar",
           },
         },
       },
@@ -200,10 +200,10 @@ export const test = {
   }`,
 
   findQueryFieldsResultData: {
-    id: 'scalar',
-    firstName: 'scalar',
-    lastName: 'scalar',
-    films: { __typename: 'meta', id: 'scalar', title: 'scalar' },
+    id: "scalar",
+    firstName: "scalar",
+    lastName: "scalar",
+    films: { __typename: "meta", id: "scalar", title: "scalar" },
   },
 
   findClosingBraceTestData: `{
@@ -228,23 +228,23 @@ export const test = {
   findTwoActorsAliasTestResult: {
     queries: [
       {
-        name: 'actors',
-        alias: 'harrisonActor',
-        arguments: '(id:00)',
+        name: "actors",
+        alias: "harrisonActor",
+        arguments: "(id:00)",
         fields: {
-          firstName: 'scalar',
-          lastName: 'scalar',
-          films: { __typename: 'meta', id: 'scalar', title: 'scalar' },
+          firstName: "scalar",
+          lastName: "scalar",
+          films: { __typename: "meta", id: "scalar", title: "scalar" },
         },
       },
       {
-        name: 'actors',
-        alias: 'hammelActor',
-        arguments: '(id:01)',
+        name: "actors",
+        alias: "hammelActor",
+        arguments: "(id:01)",
         fields: {
-          firstName: 'scalar',
-          lastName: 'scalar',
-          films: { __typename: 'meta', id: 'scalar', title: 'scalar' },
+          firstName: "scalar",
+          lastName: "scalar",
+          films: { __typename: "meta", id: "scalar", title: "scalar" },
         },
       },
     ],
@@ -263,16 +263,16 @@ export const test = {
   newAliasTestResult: {
     queries: [
       {
-        name: 'hero',
-        alias: 'empireHero',
-        arguments: '(episode:EMPIRE)',
-        fields: { name: 'scalar' },
+        name: "hero",
+        alias: "empireHero",
+        arguments: "(episode:EMPIRE)",
+        fields: { name: "scalar" },
       },
       {
-        name: 'hero',
-        alias: 'jediHero',
-        arguments: '(episode:JEDI)',
-        fields: { name: 'scalar' },
+        name: "hero",
+        alias: "jediHero",
+        arguments: "(episode:JEDI)",
+        fields: { name: "scalar" },
       },
     ],
   },
@@ -305,23 +305,23 @@ export const test = {
   fragmentResultData: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(input:{genre:ACTION})',
+        name: "movies",
+        arguments: "(input:{genre:ACTION})",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
         },
       },
       {
-        name: 'actors',
-        arguments: '',
+        name: "actors",
+        arguments: "",
         fields: {
-          id: 'scalar',
-          films: { __typename: 'meta', id: 'scalar', title: 'scalar' },
-          firstName: 'scalar',
-          lastName: 'scalar',
+          id: "scalar",
+          films: { __typename: "meta", id: "scalar", title: "scalar" },
+          firstName: "scalar",
+          lastName: "scalar",
         },
       },
     ],
@@ -356,18 +356,18 @@ export const test = {
   fragmentResultData2: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(input:{genre:ACTION})',
+        name: "movies",
+        arguments: "(input:{genre:ACTION})",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            films: { __typename: 'meta', id: 'scalar', title: 'scalar' },
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            films: { __typename: "meta", id: "scalar", title: "scalar" },
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
@@ -398,17 +398,17 @@ export const test = {
   fragmentResultData3: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(input:{genre:ACTION})',
+        name: "movies",
+        arguments: "(input:{genre:ACTION})",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
@@ -445,31 +445,31 @@ export const test = {
   singleVariableTestResult: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(genre:ACTION)',
+        name: "movies",
+        arguments: "(genre:ACTION)",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
       {
-        name: 'actors',
-        arguments: '',
+        name: "actors",
+        arguments: "",
         fields: {
-          id: 'scalar',
-          firstName: 'scalar',
-          lastName: 'scalar',
+          id: "scalar",
+          firstName: "scalar",
+          lastName: "scalar",
           films: {
-            __typename: 'meta',
-            id: 'scalar',
-            title: 'scalar',
+            __typename: "meta",
+            id: "scalar",
+            title: "scalar",
           },
         },
       },
@@ -477,7 +477,7 @@ export const test = {
   },
 
   singleVariableTestValue: {
-    movieGenre: 'ACTION',
+    movieGenre: "ACTION",
   },
 
   multiVariableTestData: `
@@ -510,31 +510,31 @@ export const test = {
   multiVariableTestResult: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(genre:ACTION)',
+        name: "movies",
+        arguments: "(genre:ACTION)",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
       {
-        name: 'actors',
-        arguments: '(actor:1)',
+        name: "actors",
+        arguments: "(actor:1)",
         fields: {
-          id: 'scalar',
-          firstName: 'scalar',
-          lastName: 'scalar',
+          id: "scalar",
+          firstName: "scalar",
+          lastName: "scalar",
           films: {
-            __typename: 'meta',
-            id: 'scalar',
-            title: 'scalar',
+            __typename: "meta",
+            id: "scalar",
+            title: "scalar",
           },
         },
       },
@@ -542,11 +542,12 @@ export const test = {
   },
 
   multiVariableTestValue: {
-    movieGenre: 'ACTION',
-    actorID: '1',
+    movieGenre: "ACTION",
+    actorID: "1",
   },
 
-  includeDirectiveTestData: `query AllActionMoviesAndAllActors ($movieGenre: String, $withActors: Boolean!) {
+  includeDirectiveTestData:
+    `query AllActionMoviesAndAllActors ($movieGenre: String, $withActors: Boolean!) {
     movies(genre: $movieGenre) {
       __typename
       id
@@ -573,17 +574,17 @@ export const test = {
   includeDirectiveFalseResult: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(genre:ACTION)',
+        name: "movies",
+        arguments: "(genre:ACTION)",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
@@ -591,38 +592,38 @@ export const test = {
   },
 
   includeDirectiveFalseValues: {
-    movieGenre: 'ACTION',
+    movieGenre: "ACTION",
     withActors: false,
   },
 
   includeDirectiveTrueResult: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(genre:ACTION)',
+        name: "movies",
+        arguments: "(genre:ACTION)",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
       {
-        name: 'actors',
-        arguments: '',
+        name: "actors",
+        arguments: "",
         fields: {
-          id: 'scalar',
-          firstName: 'scalar',
-          lastName: 'scalar',
+          id: "scalar",
+          firstName: "scalar",
+          lastName: "scalar",
           films: {
-            __typename: 'meta',
-            id: 'scalar',
-            title: 'scalar',
+            __typename: "meta",
+            id: "scalar",
+            title: "scalar",
           },
         },
       },
@@ -630,11 +631,12 @@ export const test = {
   },
 
   includeDirectiveTrueValues: {
-    movieGenre: 'ACTION',
+    movieGenre: "ACTION",
     withActors: true,
   },
 
-  skipDirectiveTestData: `query AllActionMoviesAndAllActors ($movieGenre: String, $withActors: Boolean!) {
+  skipDirectiveTestData:
+    `query AllActionMoviesAndAllActors ($movieGenre: String, $withActors: Boolean!) {
   movies(genre: $movieGenre) {
     __typename
     id
@@ -661,17 +663,17 @@ export const test = {
   skipDirectiveTrueResult: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(genre:ACTION)',
+        name: "movies",
+        arguments: "(genre:ACTION)",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
@@ -679,38 +681,38 @@ export const test = {
   },
 
   skipDirectiveTrueValues: {
-    movieGenre: 'ACTION',
+    movieGenre: "ACTION",
     withActors: true,
   },
 
   skipDirectiveFalseResult: {
     queries: [
       {
-        name: 'movies',
-        arguments: '(genre:ACTION)',
+        name: "movies",
+        arguments: "(genre:ACTION)",
         fields: {
-          __typename: 'meta',
-          id: 'scalar',
-          title: 'scalar',
-          genre: 'scalar',
+          __typename: "meta",
+          id: "scalar",
+          title: "scalar",
+          genre: "scalar",
           actors: {
-            id: 'scalar',
-            firstName: 'scalar',
-            lastName: 'scalar',
+            id: "scalar",
+            firstName: "scalar",
+            lastName: "scalar",
           },
         },
       },
       {
-        name: 'actors',
-        arguments: '',
+        name: "actors",
+        arguments: "",
         fields: {
-          id: 'scalar',
-          firstName: 'scalar',
-          lastName: 'scalar',
+          id: "scalar",
+          firstName: "scalar",
+          lastName: "scalar",
           films: {
-            __typename: 'meta',
-            id: 'scalar',
-            title: 'scalar',
+            __typename: "meta",
+            id: "scalar",
+            title: "scalar",
           },
         },
       },
@@ -718,7 +720,7 @@ export const test = {
   },
 
   skipDirectiveFalseValues: {
-    movieGenre: 'ACTION',
+    movieGenre: "ACTION",
     withActors: false,
   },
 };

@@ -1,7 +1,6 @@
 export const test = {
   fragmentTestData0: {
-    query:
-      `query {
+    query: `query {
       movies(input: { genre: ACTION }) {
         __typename
         id
@@ -16,11 +15,10 @@ export const test = {
           }   
      }
     }
-  `
+  `,
   },
 
-  fragmentResultData0:
-    `query {
+  fragmentResultData0: `query {
       movies(input: { genre: ACTION }) {
         __typename
         id
@@ -37,8 +35,7 @@ export const test = {
     }`,
 
   fragmentTestData: {
-    query:
-      `query {
+    query: `query {
         movies(input: { genre: ACTION }) {
           __typename
           id
@@ -62,10 +59,9 @@ export const test = {
         firstName
         lastName
       }
-      `
+      `,
   },
-  fragmentResultData:
-    `query {
+  fragmentResultData: `query {
         movies(input: { genre: ACTION }) {
           __typename
           id
@@ -85,10 +81,8 @@ export const test = {
       
       }`,
 
-
   fragmentTestData2: {
-    query:
-       `query {
+    query: `query {
       movies(input: { genre: ACTION }) {
         __typename
         id
@@ -111,11 +105,9 @@ export const test = {
     fragment firstAndLast on Actors {
       firstName
       lastName
-    }`
-    
+    }`,
   },
-  fragmentResultData2:
-    `query {
+  fragmentResultData2: `query {
       movies(input: { genre: ACTION }) {
         __typename
         id
@@ -135,8 +127,7 @@ export const test = {
     }`,
 
   fragmentTestData3: {
-    query:
-      `
+    query: `
   query AllActionMovies {
     movies(input: { genre: ACTION }) {
       __typename
@@ -155,7 +146,7 @@ export const test = {
   fragment firstAndLast on Actors {
     firstName
     lastName
-  }`
+  }`,
   },
 
   fragmentResultData3: `
@@ -173,13 +164,11 @@ export const test = {
       }  
     }`,
 
-  singleVariableTestData:
-  {
+  singleVariableTestData: {
     variables: {
-      "movieGenre": "ACTION"
+      "movieGenre": "ACTION",
     },
-    query:
-      `query AllActionMoviesAndAllActors ($movieGenre: String) {
+    query: `query AllActionMoviesAndAllActors ($movieGenre: String) {
         movies(input: {genre: $movieGenre}) {
           __typename
           id
@@ -202,11 +191,9 @@ export const test = {
           }
         }
       }
-      }`
-
+      }`,
   },
-  singleVariableTestResult:
-    `query AllActionMoviesAndAllActors {
+  singleVariableTestResult: `query AllActionMoviesAndAllActors {
       movies(input: {genre: ACTION}) {
         __typename
         id
@@ -231,11 +218,10 @@ export const test = {
     }
     }`,
 
-  multiVariableTestData:
-  {
+  multiVariableTestData: {
     variables: {
       "movieGenre": "ACTION",
-      "actorID": "7"
+      "actorID": "7",
     },
     query:
       `query AllActionMoviesAndAllActors ($movieGenre: String, $actorID: ID) {
@@ -264,8 +250,7 @@ export const test = {
       }`,
   },
 
-  multiVariableTestResult:
-    ` query AllActionMoviesAndAllActors {
+  multiVariableTestResult: ` query AllActionMoviesAndAllActors {
       movies(genre: ACTION) {
         __typename
         id
@@ -289,4 +274,4 @@ export const test = {
       }
     }
     }`,
-}
+};
