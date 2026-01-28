@@ -195,6 +195,20 @@ deno test --allow-env --allow-net src/server/  # Server tests
 deno test --allow-net --allow-env src/client/  # Client tests
 ```
 
+**Note:** Some tests in `src/client/ObsidianClient.test.ts` require a GitHub
+personal access token to run. These tests are automatically skipped if the token
+is not provided. To run these tests:
+
+```bash
+export GITHUB_TOKEN=your_github_token_here
+make tests
+# or
+deno test --allow-env --allow-net
+```
+
+You can create a GitHub personal access token at:
+https://github.com/settings/tokens
+
 ### Dependencies
 
 **Server-side:**

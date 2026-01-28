@@ -7,7 +7,15 @@ import {
 } from "../../src/server/normalize.ts";
 import { GenericObject } from "../../src/server/normalize.ts";
 import { Cache } from "./cache/quickCache.test.helper.ts";
-const cache = new Cache();
+
+// Lazy initialization to avoid connection errors at module load time
+let cache: Cache | null = null;
+function getCache(): Cache {
+  if (!cache) {
+    cache = new Cache();
+  }
+  return cache;
+}
 
 const isArrayOfHashableObjects = (
   arrayOfObjects: Array<GenericObject>,
@@ -98,7 +106,9 @@ export const detransformResponse = async (
 
       for (const hash in transformedValue) {
         console.log("hash -> ", hash);
-        const redisValue = await cache.cacheReadObject(hash) as GenericObject;
+        const redisValue = await getCache().cacheReadObject(
+          hash,
+        ) as GenericObject;
         console.log("redisVal -> ", redisValue);
         // edge case in which our eviction strategy has pushed partial Cache data out of Redis
         if (!redisValue) {

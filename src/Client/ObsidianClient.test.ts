@@ -80,8 +80,11 @@ function createGitHubClient(options?: {
   });
 }
 
-Deno.test("ObsidianClient: Basic query without cache", async () => {
-  const client = createGitHubClient({ useCache: false });
+Deno.test({
+  name: "ObsidianClient: Basic query without cache",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
+    const client = createGitHubClient({ useCache: false });
 
     const query = `
     query {
@@ -100,10 +103,14 @@ Deno.test("ObsidianClient: Basic query without cache", async () => {
     assertExists(response.data?.viewer);
     assertExists(response.data?.viewer.login);
     assertEquals(typeof response.data?.viewer.login, "string");
+  },
 });
 
-Deno.test("ObsidianClient: Query with LFU cache", async () => {
-  const client = createGitHubClient({
+Deno.test({
+  name: "ObsidianClient: Query with LFU cache",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
+    const client = createGitHubClient({
       useCache: true,
       algo: "LFU",
       capacity: 100,
@@ -139,10 +146,14 @@ Deno.test("ObsidianClient: Query with LFU cache", async () => {
 
     // Verify it's actually from cache (response should be identical)
     assertEquals(response1.data?.viewer.login, response2.data?.viewer.login);
+  },
 });
 
-Deno.test("ObsidianClient: Query with LRU cache", async () => {
-  const client = createGitHubClient({
+Deno.test({
+  name: "ObsidianClient: Query with LRU cache",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
+    const client = createGitHubClient({
       useCache: true,
       algo: "LRU",
       capacity: 100,
@@ -165,10 +176,14 @@ Deno.test("ObsidianClient: Query with LRU cache", async () => {
     const response2 = await client.query<ViewerResponse>(query);
     assertExists(response2.data);
     assertEquals(response1.data?.viewer.login, response2.data?.viewer.login);
+  },
 });
 
-Deno.test("ObsidianClient: Query with W-TinyLFU cache", async () => {
-  const client = createGitHubClient({
+Deno.test({
+  name: "ObsidianClient: Query with W-TinyLFU cache",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
+    const client = createGitHubClient({
       useCache: true,
       algo: "W-TinyLFU",
       capacity: 100,
@@ -191,9 +206,13 @@ Deno.test("ObsidianClient: Query with W-TinyLFU cache", async () => {
     const response2 = await client.query<ViewerResponse>(query);
     assertExists(response2.data);
     assertEquals(response1.data?.viewer.login, response2.data?.viewer.login);
+  },
 });
 
-Deno.test("ObsidianClient: Query with nested fields", async () => {
+Deno.test({
+  name: "ObsidianClient: Query with nested fields",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
     const client = createGitHubClient({ useCache: true });
 
     const query = `
@@ -223,9 +242,13 @@ Deno.test("ObsidianClient: Query with nested fields", async () => {
       Array.isArray(response.data?.viewer.repositories?.nodes),
       true,
     );
+  },
 });
 
-Deno.test("ObsidianClient: Cache read/write options", async () => {
+Deno.test({
+  name: "ObsidianClient: Cache read/write options",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
     const client = createGitHubClient({ useCache: true });
 
     const query = `
@@ -254,9 +277,13 @@ Deno.test("ObsidianClient: Cache read/write options", async () => {
     });
     assertExists(response3.data);
     assertEquals(response1.data?.viewer.login, response3.data?.viewer.login);
+  },
 });
 
-Deno.test("ObsidianClient: Clear cache", async () => {
+Deno.test({
+  name: "ObsidianClient: Clear cache",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
     const client = createGitHubClient({ useCache: true });
 
     const query = `
@@ -278,9 +305,13 @@ Deno.test("ObsidianClient: Clear cache", async () => {
     const response2 = await client.query<ViewerResponse>(query);
     assertExists(response2.data);
     assertEquals(response1.data?.viewer.login, response2.data?.viewer.login);
+  },
 });
 
-Deno.test("ObsidianClient: Query repository information", async () => {
+Deno.test({
+  name: "ObsidianClient: Query repository information",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
     const client = createGitHubClient({ useCache: true });
 
     const query = `
@@ -306,9 +337,13 @@ Deno.test("ObsidianClient: Query repository information", async () => {
     assertEquals(response.data?.repository.owner.login, "denoland");
     assertExists(response.data?.repository.stargazerCount);
     assertEquals(typeof response.data?.repository.stargazerCount, "number");
+  },
 });
 
-Deno.test("ObsidianClient: Multiple queries with different data", async () => {
+Deno.test({
+  name: "ObsidianClient: Multiple queries with different data",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
     const client = createGitHubClient({ useCache: true, capacity: 50 });
 
     const query1 = `
@@ -345,9 +380,13 @@ Deno.test("ObsidianClient: Multiple queries with different data", async () => {
       cached2.data?.repository.name,
       response2.data?.repository.name,
     );
+  },
 });
 
-Deno.test("ObsidianClient: Error handling", async () => {
+Deno.test({
+  name: "ObsidianClient: Error handling",
+  ignore: !GITHUB_TOKEN,
+  fn: async () => {
     const client = createGitHubClient({ useCache: false });
 
     const invalidQuery = `
@@ -364,4 +403,5 @@ Deno.test("ObsidianClient: Error handling", async () => {
     assertExists(response.errors);
     assertEquals(Array.isArray(response.errors), true);
     assertEquals(response.errors.length > 0, true);
+  },
 });

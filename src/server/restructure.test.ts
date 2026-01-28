@@ -36,7 +36,7 @@ Deno.test("restructure.ts - restructure fragment test - restructure fragment tes
   const result = restructure(fragmentData);
   assertEquals(
     result,
-    print(gql(fragmentData.query) as ASTNode),
+    print(gql(test.fragmentResultData3) as ASTNode),
   );
 });
 

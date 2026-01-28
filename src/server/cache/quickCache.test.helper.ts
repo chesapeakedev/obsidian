@@ -28,14 +28,36 @@ interface RedisClient {
 }
 
 // set up a redis server
-let redis: RedisClient;
+let redis: RedisClient | null = null;
 const context = "server";
 
-if (context === "server") {
-  redis = await connect({
-    hostname: "127.0.0.1",
-    port: 6379,
-  }) as RedisClient;
+let redisConnectionError: Error | null = null;
+
+async function getRedis(): Promise<RedisClient> {
+  if (!redis) {
+    if (redisConnectionError) {
+      throw redisConnectionError;
+    }
+    try {
+      redis = await connect({
+        hostname: "127.0.0.1",
+        port: 6379,
+      }) as RedisClient;
+    } catch (error) {
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
+      redisConnectionError = new Error(
+        `Redis connection failed. Make sure Redis is running: ${errorMessage}`,
+      );
+      throw redisConnectionError;
+    }
+  }
+  return redis;
+}
+
+export function hasRedisConnection(): boolean {
+  return redis !== null && redisConnectionError === null;
 }
 
 export class Cache {
@@ -57,7 +79,8 @@ export class Cache {
 
   // set cache configurations
   async configSet(parameter: string, value: string): Promise<unknown> {
-    return await redis.configSet(parameter, value);
+    const redisClient = await getRedis();
+    return await redisClient.configSet(parameter, value);
   }
 
   // Main functionality methods
@@ -88,15 +111,17 @@ export class Cache {
     array: unknown[],
     overwrite: boolean = true,
   ): Promise<void> => {
+    const redisClient = await getRedis();
     if (overwrite) {
-      await redis.del(hash);
+      await redisClient.del(hash);
     }
     const stringifiedArray = array.map((element) => JSON.stringify(element));
-    await redis.rpush(hash, ...stringifiedArray);
+    await redisClient.rpush(hash, ...stringifiedArray);
   };
 
   cacheReadList = async (hash: string): Promise<unknown[]> => {
-    let cachedArray = await redis.lrange(hash, 0, -1);
+    const redisClient = await getRedis();
+    let cachedArray = await redisClient.lrange(hash, 0, -1);
     cachedArray = cachedArray.map((element) => JSON.parse(element));
 
     return cachedArray;
@@ -106,22 +131,24 @@ export class Cache {
     hash: string,
     obj: Record<string, unknown>,
   ): Promise<void> => {
+    const redisClient = await getRedis();
     const entries = Object.entries(obj).flat();
     const stringEntries = entries.map((entry) =>
       JSON.stringify(entry)
     ) as string[];
 
-    await redis.hset(hash, ...stringEntries);
+    await redisClient.hset(hash, ...stringEntries);
   };
 
   cacheReadObject = async (hash: string, field?: string): Promise<unknown> => {
+    const redisClient = await getRedis();
     if (field) {
-      const returnValue = await redis.hget(hash, JSON.stringify(field));
+      const returnValue = await redisClient.hget(hash, JSON.stringify(field));
 
       if (returnValue === null || returnValue === undefined) return undefined;
       return JSON.parse(returnValue);
     } else {
-      const objArray = await redis.hgetall(hash);
+      const objArray = await redisClient.hgetall(hash);
       if (objArray.length == 0) return undefined;
       const parsedArray = objArray.map((entry) => JSON.parse(entry));
 
@@ -153,20 +180,21 @@ export class Cache {
     if (this.context === "client") {
       return this.storage[hash];
     } else {
+      const redisClient = await getRedis();
       console.log("In the else block...");
       if (hash === "ROOT_QUERY" || hash === "ROOT_MUTATION") {
-        const hasRootQuery = await redis.get("ROOT_QUERY");
+        const hasRootQuery = await redisClient.get("ROOT_QUERY");
 
         if (!hasRootQuery) {
-          await redis.set("ROOT_QUERY", JSON.stringify({}));
+          await redisClient.set("ROOT_QUERY", JSON.stringify({}));
         }
-        const hasRootMutation = await redis.get("ROOT_MUTATION");
+        const hasRootMutation = await redisClient.get("ROOT_MUTATION");
 
         if (!hasRootMutation) {
-          await redis.set("ROOT_MUTATION", JSON.stringify({}));
+          await redisClient.set("ROOT_MUTATION", JSON.stringify({}));
         }
       }
-      const hashedQuery = await redis.get(hash);
+      const hashedQuery = await redisClient.get(hash);
       console.log("Response from redis -> ", hashedQuery);
 
       if (hashedQuery === null || hashedQuery === undefined) return undefined;
@@ -178,8 +206,9 @@ export class Cache {
     if (this.context === "client") {
       this.storage[hash] = value;
     } else {
+      const redisClient = await getRedis();
       const stringifiedValue = JSON.stringify(value);
-      await redis.setex(hash, 6000, stringifiedValue);
+      await redisClient.setex(hash, 6000, stringifiedValue);
     }
   }
 
@@ -187,19 +216,23 @@ export class Cache {
     // deletes the hash/value pair on either object cache or redis cache
     if (this.context === "client") {
       delete this.storage[hash];
-    } else await redis.del(hash);
+    } else {
+      const redisClient = await getRedis();
+      await redisClient.del(hash);
+    }
   }
   async cacheClear(): Promise<void> {
     // erases either object cache or redis cache
     if (this.context === "client") {
       this.storage = { ROOT_QUERY: {}, ROOT_MUTATION: {} };
     } else {
-      await redis.flushdb((err: Error | null, successful: string) => {
+      const redisClient = await getRedis();
+      await redisClient.flushdb((err: Error | null, successful: string) => {
         if (err) console.log("redis error", err);
         console.log(successful, "clear");
       });
-      await redis.set("ROOT_QUERY", JSON.stringify({}));
-      await redis.set("ROOT_MUTATION", JSON.stringify({}));
+      await redisClient.set("ROOT_QUERY", JSON.stringify({}));
+      await redisClient.set("ROOT_MUTATION", JSON.stringify({}));
     }
   }
 
@@ -215,9 +248,10 @@ export class Cache {
     if (!allHashes.length) return [];
     const tildeInd = allHashes[0].indexOf("~");
     const typeName = allHashes[0].slice(0, tildeInd);
+    const redisClient = await getRedis();
     const reduction = await allHashes.reduce(async (acc, hash) => {
       const resolvedAcc = await acc;
-      const readStr = await redis.get(hash);
+      const readStr = await redisClient.get(hash);
       if (!readStr) return resolvedAcc;
       const readVal = JSON.parse(readStr);
       if (!readVal) return resolvedAcc;

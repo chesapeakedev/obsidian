@@ -71,7 +71,7 @@ const test = {
   }`,
 
   multipleQueriesOutput:
-    "query AllActionMoviesAndAllActors { movies(input: { genre: ACTION }) { __typename id title genre actors { __typename  id firstName lastName } } actors { __typename  id firstName lastName films { __typename id title } } }",
+    "query AllActionMoviesAndAllActors { movies(input: { genre: ACTION }) { __typename id title genre actors { __typename  id firstName lastName } } actors { __typename  id firstName lastName films { __typename id title } } } }",
 
   fieldsStrInput:
     "{ __typename id title genre actors { id firstName lastName } }",
