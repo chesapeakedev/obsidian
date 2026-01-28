@@ -1,6 +1,6 @@
 SHELL := bash
 
-.PHONY: sync lint format format_check lint_deno fmt_deno fmt_deno_check check_deno
+.PHONY: sync lint format format_check lint_deno fmt_deno fmt_deno_check check_deno bump_patch bump_minor bump_major
 
 default: lint
 
@@ -56,4 +56,29 @@ check_deno:
 	@echo "✅ Running full Deno checks (fmt + lint + typecheck)..."
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@deno task check
+
+# Version bumping targets
+bump_patch:
+	@current=$$(grep -o '"version": "[^"]*"' deno.json | cut -d'"' -f4); \
+	major=$$(echo $$current | cut -d'.' -f1); \
+	minor=$$(echo $$current | cut -d'.' -f2); \
+	patch=$$(echo $$current | cut -d'.' -f3); \
+	new_version="$${major}.$${minor}.$$((patch + 1))"; \
+	sed -i '' "s/\"version\": \"$$current\"/\"version\": \"$$new_version\"/" deno.json; \
+	echo "Bumped version from $$current to $$new_version"
+
+bump_minor:
+	@current=$$(grep -o '"version": "[^"]*"' deno.json | cut -d'"' -f4); \
+	major=$$(echo $$current | cut -d'.' -f1); \
+	minor=$$(echo $$current | cut -d'.' -f2); \
+	new_version="$${major}.$$((minor + 1)).0"; \
+	sed -i '' "s/\"version\": \"$$current\"/\"version\": \"$$new_version\"/" deno.json; \
+	echo "Bumped version from $$current to $$new_version"
+
+bump_major:
+	@current=$$(grep -o '"version": "[^"]*"' deno.json | cut -d'"' -f4); \
+	major=$$(echo $$current | cut -d'.' -f1); \
+	new_version="$$((major + 1)).0.0"; \
+	sed -i '' "s/\"version\": \"$$current\"/\"version\": \"$$new_version\"/" deno.json; \
+	echo "Bumped version from $$current to $$new_version"
 
