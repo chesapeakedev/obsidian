@@ -1,69 +1,20 @@
-![Obsidian](./assets/bannerfull_gradient.png)
+GraphQL, built for Deno.
 
-<div align="center">GraphQL, built for Deno.</div>
-
-<div align="center">
-
-<h1 align="center">
-	<a>Obsidian</a>
-	<a href="https://twitter.com/intent/tweet?text=Meet%20Obsidian!%20Deno's%20first%20native%20GraphQL%20caching%20client%20and%20server%20module&url=http://obsidian.land/&via=obsidian_land&hashtags=deno,denoland,nodejs,graphql,javascript" rel="nofollow"><img src="https://camo.githubusercontent.com/83d4084f7b71558e33b08844da5c773a8657e271/68747470733a2f2f696d672e736869656c64732e696f2f747769747465722f75726c2f687474702f736869656c64732e696f2e7376673f7374796c653d736f6369616c" alt="Tweet" data-canonical-src="https://img.shields.io/twitter/url/http/shields.io.svg?style=social" style="max-width:100%;"></a>
-</h1>
-
-</div>
-
-<p align="center">
-  <img alt="GitHub" src="https://img.shields.io/github/license/open-source-labs/obsidian">
-  <img alt="GitHub issues" src="https://img.shields.io/github/issues-raw/open-source-labs/obsidian?color=yellow">
-  <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/open-source-labs/obsidian?color=orange">
-  <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/open-source-labs/obsidian?style=social">
-</p>
-
-## Package Status
-
-- [x] Published to JSR as separate packages
-- [x] Client package with comprehensive tests
-- [x] Server package with Redis caching
+Obsidian is Deno's first native GraphQL caching client and server module. It
+provides intelligent caching with normalization strategies to support scalable,
+high-performance applications.
 
 ## Features
 
-- Support for W-TinyLFU client-side cache that brings great hit-ratio
-  performance with minimal memory overhead
-- Option to provide Obsidian with the search types your application uses,
-  allowing data cached from complete dataset pulls to be accessible later on in
-  searches for individual items
-- Refactored server-side caching with Redis
-- Option for persistent queries, allowing only a smaller hash to be sent to the
-  server on client-side cache misses, minimizing the cost of queries. Note that
-  while this will increase the overall performance for frequent, repeat queries.
-- Flexible cache responds only with data requested from selected fields
-- GraphQL query abstraction and caching improving the performance of your app
-- SSR React wrapper, allowing you to cache in browser
-- Configurable caching options, giving you complete control over your cache
-- Fullstack integration, leveraging client-side and server-side caching to
-  streamline your caching strategy
-- Support for the full GraphQL convention
-- Support for client-side and server-side cache invalidation
-- Optional GraphQL DoS attack mitigation security module
-
-## Overview
-
-Obsidian is Deno's first native GraphQL caching client and server module.
-Boasting lightning-fast caching and fetching capabilities alongside headlining
-normalization and rebuilding strategies, Obsidian is equipped to support
-scalable, highly performant applications.
-
-With additional support for use in server-side rendered React apps built with
-Deno, full stack integration of Obsidian enables a fast and flexible caching
-solution.
+- **Client-side caching** with multiple algorithms (LFU, LRU, W-TinyLFU)
+- **Server-side caching** with Redis integration
+- **Query normalization** for efficient cache storage and retrieval
+- **Persistent queries** to minimize network payload
+- **Cache invalidation** for mutations
+- **DoS protection** via query depth limiting
+- **Configurable caching options** for complete control
 
 ## Installation
-
-Obsidian is published as a single package:
-
-- **@chesapeake/obsidian-gql** - GraphQL client and server with intelligent
-  caching
-
-### Install Package
 
 ```typescript
 import {
@@ -73,155 +24,75 @@ import {
 } from "jsr:@chesapeake/obsidian-gql";
 ```
 
-## Package Structure
+## Usage
 
-This repository is organized as a single Deno package:
-
-```
-obsidian/
-├── src/
-│   ├── server/             # Server-side code (ObsidianService, Redis caching)
-│   └── client/            # Client-side code (ObsidianClient, in-memory caching)
-├── _test/                  # Test files
-│   ├── server/             # Server tests
-│   └── client/             # Client tests
-├── examples/               # Example code
-└── deno.json               # Package configuration
-```
-
-## Server Usage
-
-### Quick Start - Server
+### Server
 
 ```typescript
 import { gql, ObsidianService } from "jsr:@chesapeake/obsidian-gql";
 import { resolvers } from "./resolvers.ts";
 import { types } from "./schema/types.ts";
 
-// Create the GraphQL handler
 const handler = await ObsidianService({
   typeDefs: types,
   resolvers: resolvers,
 });
 
-// Start the server with Deno.serve
 Deno.serve({ port: 8000 }, handler);
 ```
 
-## Client Usage
-
-### Quick Start - Client
+### Client
 
 ```typescript
 import { ObsidianClient } from "jsr:@chesapeake/obsidian-gql";
 
-// Create a client instance
 const client = new ObsidianClient({
-  endpoint: "/graphql", // Your GraphQL endpoint
-  useCache: true, // Boolean indicating whether to use client-side cache, default to true
-  algo: "LRU", // Cache policy: "LFU" | "LRU" | "W-TinyLFU", default to "LFU"
-  capacity: 5000, // Numeric capacity of cache, default to 2000
-  persistQueries: true, // Boolean indicating whether to use persistent queries, default to false
-  searchTerms: ["title", "director", "genre"], // Optional parameter to set search terms of the data
+  endpoint: "/graphql",
+  useCache: true,
+  algo: "LRU", // "LFU" | "LRU" | "W-TinyLFU"
+  capacity: 5000,
+  persistQueries: true,
+  searchTerms: ["title", "director", "genre"],
   headers: {
-    // Optional custom headers (e.g., for authentication)
     Authorization: "Bearer your-token",
   },
 });
-```
 
-## Making a Query
-
-```typescript
-import { ObsidianClient } from "jsr:@chesapeake/obsidian-gql";
-
-const client = new ObsidianClient({
-  endpoint: "/graphql",
-  useCache: true,
-});
-
-const queryStr = `query {
-    movies {
-      id
-      title
-      releaseYear
-      genre
-    }
-  }
-`;
-
-// Execute query
-const response = await client.query(queryStr);
-console.log(response.data);
-```
-
-## Making a Mutation
-
-```typescript
-import { ObsidianClient } from "jsr:@chesapeake/obsidian-gql";
-
-const client = new ObsidianClient({
-  endpoint: "/graphql",
-  useCache: true,
-});
-
-const mutationStr = `mutation {
-  addMovie(input: {title: "Cruel Intentions", releaseYear: 1999, genre: "DRAMA" }) {
+// Query
+const response = await client.query(`query {
+  movies {
     id
     title
     releaseYear
-    genre
   }
-}
-`;
+}`);
 
-// Execute mutation
-const response = await client.mutate(mutationStr);
-console.log(response.data);
+// Mutation
+const mutation = await client.mutate(`mutation {
+  addMovie(input: {title: "Movie", releaseYear: 2024}) {
+    id
+    title
+  }
+}`);
 ```
 
-## Setting up Redis
+## Redis Setup
 
-In order to utilize server side caching, a Redis instance must be available and
-running. Redis installation and quick-start documentation can be found
-[here](https://redis.io/docs/getting-started/). Make sure to keep a redis
-instance running whenever the application is utilizing server side caching to
-avoid running into issues.
+For server-side caching, Redis must be running. Create a `.env` file:
 
-To connect Obsidian to Redis, create a .env file in the root directory of the
-application with the following information:
-
-```javascript
-REDIS_HOST= //string of redis host name, typically defaulted to '127.0.0.1' by Redis
+```bash
+REDIS_HOST=127.0.0.1
 ```
 
-Be sure to also specify the Redis TCP port by passing in the port number as an
-argument into Obsidian Router (see Selecting options for the Router above).
+Configure the Redis port via `ObsidianService` options (default: 6379).
 
 ## Documentation
 
 [getobsidian.io](http://getobsidian.io/)
 
-## Developer Tool
+## Contributing
 
-Information and instructions on how to use our developer tool can be found here
-<br/> works with Obsidian 8.0 <br/>
-[open-source-labs/obsidian-developer-tool](https://github.com/open-source-labs/obsidian-developer-tool)
-
-## Obsidian 8.0 Demo
-
-Github for a demo with some example code to play with: <br/>
-[oslabs-beta/obsidian-demo-8.0](https://github.com/oslabs-beta/obsidian-8.0-demo)
-
-## Features In Progress
-
-- Server-side caching improvements
-- More comprehensive mutation support
-- searchTerms option optimization
-- Ability to store/read only the whole query
-- Hill Climber optimization for W-TinyLFU cache size allocation
-- Developer Tool server-side cache integration
-- Developer Tool View Cache component, and Playground component
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
 
 ## Authors
 
