@@ -1,12 +1,12 @@
 {
   "name": "@chesapeake/obsidian-gql",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "exports": {
     ".": "./mod.ts"
   },
   "publish": {
     "include": ["./src/**/*.ts", "./mod.ts", "./README.md"],
-    "exclude": ["./src/**/*_test.ts", "./src/**/*.test.ts", "./src/**/*.test.fixtures.ts", "./src/**/*.test.helper.ts", "./_test/**", "./_test_variables/**"]
+    "exclude": ["./src/**/*.test.ts", "./src/**/*.test.fixtures.ts", "./src/**/*.test.helper.ts", "./src/**/*.test.write.fixtures.ts"]
   },
   "imports": {
     "@graphql-tools/schema": "npm:@graphql-tools/schema@^10.0.31",
@@ -28,7 +28,6 @@
     "singleQuote": false,
     "include": [
       "**/*.ts",
-      "**/*.js",
       "**/*.md"
     ],
     "exclude": [
@@ -37,8 +36,7 @@
       "**/build",
       "**/target",
       "**/.git",
-      "**/.sl",
-      "**/packages"
+      "**/.sl"
     ]
   },
   "lint": {
@@ -46,8 +44,7 @@
       "tags": ["recommended"]
     },
     "include": [
-      "**/*.ts",
-      "**/*.js"
+      "**/*.ts"
     ],
     "exclude": [
       "**/node_modules",
@@ -55,8 +52,7 @@
       "**/build",
       "**/target",
       "**/.git",
-      "**/.sl",
-      "**/packages"
+      "**/.sl"
     ]
   },
   "tasks": {

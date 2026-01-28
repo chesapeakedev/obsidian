@@ -35,9 +35,12 @@ export type {
 // Client-side exports
 export {
   type CacheAlgorithm,
+  GithubClient,
+  type GithubClientOptions,
   type GraphQLResponse,
   type MutationOptions,
   ObsidianClient,
   type ObsidianClientOptions,
   type QueryOptions,
+  type RateLimitInfo,
 } from "./src/client/ObsidianClient.ts";

@@ -4,8 +4,8 @@ SHELL := bash
 
 default: lint
 publish: ; deno task publish
-sync: ./repo_sync.sh
-	$(SHELL) ./repo_sync.sh
+sync: ./hack/repo_sync.sh
+	$(SHELL) ./hack/repo_sync.sh
 
 # Note: lint also runs formatting to ensure code is properly formatted before linting
 lint: format check_deno lint_deno
