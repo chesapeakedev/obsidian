@@ -1,15 +1,10 @@
 import {
-  assert as _assert,
   assertEquals,
-  assertStrictEquals as _assertStrictEquals,
-  equal as _equal,
-} from "https://deno.land/std/testing/asserts.ts";
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
-  detransformResponse as _detransformResponse,
   transformResponse,
-} from "../_test_variables/server/transformResponseLight.ts";
-import { test } from "../_test_variables/server/transformResponse_variables.ts";
-import { Cache as _Cache } from "../_test_variables/server/quickCacheLight.ts";
+} from "./transformResponse.test.helper.ts";
+import { test } from "./transformResponse.test.fixtures.ts";
 
 // transformResponse
 Deno.test("transformResponse - expected transformation to work on nested response objects", () => {

@@ -6,7 +6,7 @@
   },
   "publish": {
     "include": ["./src/**/*.ts", "./mod.ts", "./README.md"],
-    "exclude": ["./src/**/*_test.ts", "./src/**/*.test.ts", "./_test/**", "./_test_variables/**"]
+    "exclude": ["./src/**/*_test.ts", "./src/**/*.test.ts", "./src/**/*.test.fixtures.ts", "./src/**/*.test.helper.ts", "./_test/**", "./_test_variables/**"]
   },
   "imports": {
     "@graphql-tools/schema": "npm:@graphql-tools/schema@^10.0.31",
@@ -66,8 +66,8 @@
     "lint": "deno lint",
     "lint:fix": "deno lint --fix",
     "test": "deno test --allow-env --allow-net",
-    "test:server": "deno test --allow-env --allow-net _test/server/",
-    "test:client": "deno test --allow-net --allow-env _test/client/",
+    "test:server": "deno test --allow-env --allow-net src/server/",
+    "test:client": "deno test --allow-net --allow-env src/client/",
     "check": "deno fmt --check && deno lint && deno check **/*.ts",
     "publish": "deno publish"
   }

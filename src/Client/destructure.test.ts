@@ -4,8 +4,8 @@ import destructureQueries, {
   findClosingBrace,
   findQueryFields,
   findQueryStrings,
-} from "../../src/client/destructure.ts";
-import { test } from "../../_test_variables/client/destructure_variables.ts";
+} from "./destructure.ts";
+import { test } from "./destructure.test.fixtures.ts";
 
 Deno.test("destructure.ts - destructure helper function tests - findQueryStrings test", () => {
   const results = findQueryStrings(test.findQueryStringsTestData);

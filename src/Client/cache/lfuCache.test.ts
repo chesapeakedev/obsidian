@@ -9,8 +9,8 @@
  */
 
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import LFUCache from "../../src/client/cache/lfuCache.ts";
-import { test } from "../../_test_variables/client/lfuBrowserCache_variables.ts";
+import LFUCache from "./lfuCache.ts";
+import { test } from "./lfuCache.test.fixtures.ts";
 
 // Type definitions for test objects
 interface NestedObj {

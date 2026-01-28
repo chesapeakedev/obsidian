@@ -1,6 +1,101 @@
 import { assertEquals, assertThrows } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import queryDepthLimiter from "../../src/server/DoSSecurity.ts";
-import { test } from "../../_test_variables/server/DoSSecurity_variables.ts";
+import queryDepthLimiter from "./DoSSecurity.ts";
+
+// Test fixtures
+const test = {
+  DEPTH_2_QUERY: `
+  query AllActionMovies {
+    movies(input: { genre: ACTION }) {
+      __typename
+      id
+      title
+      genre
+      actors {
+        id
+        firstName
+        lastName
+      }
+    }
+  }`,
+
+  DEPTH_2_MUTATION: `
+  mutation AllActionMoviesAndAllActors {
+    movies(input: { genre: ACTION }) {
+      id
+      title
+      genre
+      actors {
+        id
+        firstName
+        lastName
+      }
+    }
+  }`,
+
+  MULTIPLE_DEPTH_2_QUERY: `
+  query AllActionMovies {
+    movies(input: { genre: ACTION }) {
+      __typename
+      id
+      title
+      genre
+    },
+    movies(input: { genre: ACTION }) {
+      __typename
+      id
+      title
+      genre
+      actors {
+        id
+        firstName
+        lastName
+      }
+    },
+    movies(input: { genre: ACTION }) {
+      __typename
+      id
+      title
+      genre
+      actors {
+        id
+        firstName
+        lastName
+      }
+    }
+  }`,
+
+  MULTIPLE_DEPTH_2_MUTATION: `
+  mutation AllActionMovies {
+    movies(input: { genre: ACTION }) {
+      __typename
+      id
+      title
+      genre
+    },
+    movies(input: { genre: ACTION }) {
+      __typename
+      id
+      title
+      genre
+      actors {
+        id
+        firstName
+        lastName
+      }
+    },
+    movies(input: { genre: ACTION }) {
+      __typename
+      id
+      title
+      genre
+      actors {
+        id
+        firstName
+        lastName
+      }
+    }
+  }`,
+};
 
 Deno.test("DoSSecurity.ts - Query depth limit NOT exceeded tests - Test query depth of 2 does not exceed allowable depth 2", () => {
   const results = queryDepthLimiter(test.DEPTH_2_QUERY, 2);

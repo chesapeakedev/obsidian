@@ -2,15 +2,15 @@ import {
   assert,
   assertEquals,
   assertStrictEquals,
-} from "https://deno.land/std/testing/asserts.ts";
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   containsHashableObject,
   hashMaker,
   isHashableObject,
   normalizeObject,
   printHashableObject,
-} from "../src/server/normalize.ts";
-import { serverNormalizeTestVariables as data } from "../_test_variables/server/serverNormalize_variables.ts";
+} from "./normalize.ts";
+import { serverNormalizeTestVariables as data } from "./normalize.test.fixtures.ts";
 const arrOfHashableKeys = ["id", "__typename"];
 
 // containsHashableObject

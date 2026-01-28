@@ -423,8 +423,10 @@ obsidian/
 
 ### Testing
 
-- Test files located in `_test/` directory
-- Test variables in `_test_variables/` directory
+- Test files are colocated with source files using `.test.ts` suffix
+- Test fixtures are colocated with tests using `.test.fixtures.ts` suffix
+- Test helpers are colocated with tests using `.test.helper.ts` suffix
+- Small fixtures (< 100 lines) are merged directly into test files
 - Use Deno's built-in testing framework
 
 ### Adding New Features
@@ -474,8 +476,8 @@ obsidian/
 ```bash
 deno test --allow-env --allow-net
 # Or run specific test suites:
-deno test --allow-env --allow-net _test/server/
-deno test --allow-net --allow-env _test/client/
+deno test --allow-env --allow-net src/server/
+deno test --allow-net --allow-env src/client/
 ```
 
 **Building:**

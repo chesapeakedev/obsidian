@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { restructure } from "../../src/server/restructure.ts";
-import { test } from "../../_test_variables/server/restructure_variables.ts";
+import { restructure } from "./restructure.ts";
+import { test } from "./restructure.test.fixtures.ts";
 import * as gqlModule from "npm:graphql-tag@^2.12.0";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y

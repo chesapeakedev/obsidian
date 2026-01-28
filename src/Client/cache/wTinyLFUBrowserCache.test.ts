@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import WTinyLFUCache from "../../src/client/cache/wTinyLFUBrowserCache.ts";
+import WTinyLFUCache from "./wTinyLFUBrowserCache.ts";
 
 Deno.test("WTinyLFU cache functionality - WTinyLFU Initialization - should initialize with corect capacities", () => {
   const cache = new WTinyLFUCache(1000);
