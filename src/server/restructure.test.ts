@@ -32,10 +32,11 @@ Deno.test("restructure.ts - restructure fragment test - restructure fragment tes
 });
 
 Deno.test("restructure.ts - restructure fragment test - restructure fragment test - nested fragments", () => {
-  const result = restructure(test.fragmentTestData3);
+  const fragmentData = test.fragmentTestData3 as { query: string };
+  const result = restructure(fragmentData);
   assertEquals(
     result,
-    print(gql(test.fragmentTestData3) as ASTNode),
+    print(gql(fragmentData.query) as ASTNode),
   );
 });
 

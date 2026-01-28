@@ -100,9 +100,9 @@ export function createQueriesObj(
     // split the query string into multiple parts
     const queryObj = splitUpQueryStr(queryStr, queryVars);
     // recursively convert the fields string to a fields object and update the fields property
-    queryObj.fields = findQueryFields(queryObj.fields);
+    queryObj.fields = findQueryFields(queryObj.fields as string);
     // push the finished query object into the queries/mutations array on the result object
-    queriesObj[typePropName].push(queryObj);
+    (queriesObj[typePropName] as unknown[]).push(queryObj);
   });
 
   return queriesObj;
@@ -122,13 +122,14 @@ export function splitUpQueryStr(
   if (argsStartIndex === -1 || firstBraceIndex < argsStartIndex) {
     queryObj.name = queryStr.substring(0, firstBraceIndex).trim();
     // // Checks if there is an alias
-    if (queryObj.name.includes(":")) {
+    const nameStr = queryObj.name as string;
+    if (nameStr.includes(":")) {
       // sets index of alias marker :
-      const aliasIndex = queryObj.name.indexOf(":");
+      const aliasIndex = nameStr.indexOf(":");
       // sets alias
-      queryObj.alias = queryObj.name.substring(0, aliasIndex).trim();
+      queryObj.alias = nameStr.substring(0, aliasIndex).trim();
       // shortens name to exclude alias
-      queryObj.name = queryObj.name
+      queryObj.name = nameStr
         .substring(aliasIndex + 1, firstBraceIndex)
         .trim();
     }
@@ -140,13 +141,14 @@ export function splitUpQueryStr(
   // finds the query name string and assigns it
   queryObj.name = queryStr.substring(0, argsStartIndex).trim();
   // Checks if there is an alias
-  if (queryObj.name.includes(":")) {
+  const nameStr = queryObj.name as string;
+  if (nameStr.includes(":")) {
     // sets index of alias marker :
-    const aliasIndex = queryObj.name.indexOf(":");
+    const aliasIndex = nameStr.indexOf(":");
     // sets alias
-    queryObj.alias = queryObj.name.substring(0, aliasIndex).trim();
+    queryObj.alias = nameStr.substring(0, aliasIndex).trim();
     // shortens name to exclude alias
-    queryObj.name = queryObj.name
+    queryObj.name = nameStr
       .substring(aliasIndex + 1, firstBraceIndex)
       .trim();
   }
@@ -204,8 +206,8 @@ export function replaceQueryVariables(
 
       // if the variable was present in the "variables" object, mutate the query
       // arg string by replacing the variable with its value
-      if (varValue !== undefined) {
-        queryArgs = queryArgs.replace("$" + varName, varValue);
+      if (varValue !== undefined && varValue !== null) {
+        queryArgs = queryArgs.replace("$" + varName, String(varValue));
 
         // reset i after replacing the variable with its value
         /* NOTE: the value of the variable COULD be bigger than the variable itself */

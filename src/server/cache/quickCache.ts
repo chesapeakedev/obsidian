@@ -6,6 +6,11 @@ import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
 const gql = gqlModule.default as (query: string) => unknown;
+import {
+  type DocumentNode,
+  type FieldNode,
+  type OperationDefinitionNode,
+} from "graphql";
 import { destructureQueries } from "../destructure.ts";
 
 interface InitialCache {
@@ -53,18 +58,25 @@ export class Cache {
     // destructure the query string into an object
     const queries = destructureQueries(queryStr).queries;
     if (!queries) return;
+    const queriesRecord = queries as Record<string, {
+      name: string;
+      arguments: string;
+      alias?: string;
+      fields: unknown;
+    }>;
     const responseObject: Record<string, unknown> = {};
     // iterate through each query in the input object
-    for (const query in queries) {
-      const queryHash = queries[query].name.concat(queries[query].arguments);
+    for (const query in queriesRecord) {
+      const queryObj = queriesRecord[query];
+      const queryHash = queryObj.name.concat(queryObj.arguments);
       const rootQueryValue = this.ROOT_QUERY[queryHash];
       if (rootQueryValue && Array.isArray(rootQueryValue)) {
         const hashArray = rootQueryValue as string[];
-        const respObjProp = queries[query].alias ?? queries[query].name;
+        const respObjProp = queryObj.alias ?? queryObj.name;
         // invoke populateAllHashes to add data object to the response object
         responseObject[respObjProp] = await this.populateAllHashes(
           hashArray,
-          queries[query].fields,
+          queryObj.fields,
         );
         if (!responseObject[respObjProp]) return;
       } else {
@@ -82,17 +94,18 @@ export class Cache {
     const tildeInd = allHashes[0].indexOf("~");
     const typeName = allHashes[0].slice(0, tildeInd);
     const reduction = await allHashes.reduce(async (acc, hash) => {
+      const resolvedAcc = await acc;
       const redisClient = this.redis as {
         get: (key: string) => Promise<string | null>;
       };
       const readStr = await redisClient.get(hash);
-      if (!readStr) return undefined;
+      if (!readStr) return resolvedAcc;
       const readVal = JSON.parse(readStr);
-      if (!readVal) return;
+      if (!readVal) return resolvedAcc;
       const dataObj: Record<string, unknown> = {};
       // iterate over the fields object to populate with data from cache
       if (typeof fields !== "object" || fields === null) {
-        return undefined;
+        return resolvedAcc;
       }
       const fieldsRecord = fields as Record<string, unknown>;
       const readValRecord = readVal as Record<string, unknown>;
@@ -112,16 +125,15 @@ export class Cache {
               fieldsRecord[field],
             );
           } else {
-            return undefined;
+            return resolvedAcc;
           }
-          if (dataObj[field] === undefined) return;
+          if (dataObj[field] === undefined) return resolvedAcc;
         }
       }
       // at this point acc should be an array of response objects for each hash
-      const resolvedProm = await Promise.resolve(acc);
-      resolvedProm.push(dataObj);
-      return resolvedProm;
-    }, Promise.resolve([]));
+      resolvedAcc.push(dataObj);
+      return resolvedAcc;
+    }, Promise.resolve([] as unknown[]));
     return reduction;
   }
 
@@ -224,18 +236,19 @@ export class Cache {
   */
   createQueryKey(queryStr: string): string {
     // traverses AST and gets object name, and any filter keys in the query
-    const ast = gql(queryStr);
-    const tableName = ast.definitions[0].selectionSet.selections[0].name.value;
+    const ast = gql(queryStr) as DocumentNode;
+    const operationDef = ast.definitions[0] as OperationDefinitionNode;
+    const firstSelection = operationDef.selectionSet.selections[0] as FieldNode;
+    const tableName = firstSelection.name.value;
     let queryKey = `${tableName}`;
 
-    if (ast.definitions[0].operation === "mutation") return queryKey;
-    if (ast.definitions[0].selectionSet.selections[0].arguments.length) {
-      const fieldsArray =
-        ast.definitions[0].selectionSet.selections[0].arguments;
+    if (operationDef.operation === "mutation") return queryKey;
+    if (firstSelection.arguments && firstSelection.arguments.length) {
+      const fieldsArray = firstSelection.arguments;
       const resultsObj: Record<string, unknown> = {};
-      fieldsArray.forEach((el: Record<string, unknown>) => {
-        const name = el.name.value;
-        const value = el.value.value;
+      fieldsArray.forEach((el) => {
+        const name = (el as { name: { value: string } }).name.value;
+        const value = (el as { value: { value: unknown } }).value.value;
         resultsObj[name] = value;
       });
 

@@ -49,8 +49,11 @@ Deno.test("WTinyLFU cache functionality - Window cache functionality - should mo
   await cache.putAndPromote("one", 1);
   await cache.putAndPromote("two", 2);
   assertEquals(cache.SLRU.probationaryLRU.get("one"), 1);
-  cache.sketch["one"] = 3;
-  cache.sketch["two"] = 2;
+  // Double cast necessary: FrequencySketch doesn't expose a public API to directly set
+  // frequency values, which is required for this test to verify TinyLFU admission policy.
+  // We bypass the type system to manipulate internal state for testing purposes only.
+  (cache.sketch as unknown as Record<string, number>)["one"] = 3;
+  (cache.sketch as unknown as Record<string, number>)["two"] = 2;
   await cache.putAndPromote("three", 3);
   assertEquals(cache.SLRU.probationaryLRU.get("one"), 1);
   assertEquals(cache.SLRU.probationaryLRU.get("two"), null);

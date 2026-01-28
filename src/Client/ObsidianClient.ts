@@ -132,6 +132,9 @@ export class ObsidianClient {
           ...options,
         });
       }, pollInterval);
+      // Double cast necessary: Deno's setInterval returns Timer type, not number.
+      // We store it in Map<string, number> for compatibility with clearInterval which
+      // accepts both Timer and number. This is a Deno-specific type system limitation.
       this.pollIntervals.set(query, intervalId as unknown as number);
       return Promise.resolve({} as GraphQLResponse<T>);
     }
@@ -218,6 +221,11 @@ export class ObsidianClient {
             mutationHeaders,
           );
           if (update && this.cache) {
+            // Double cast necessary: this.cache is LFUCache | LRUCache | WTinyLFUCache,
+            // but update function expects Record<string, unknown>. Cache classes don't
+            // implement this interface directly. responseObj is GraphQLResponse<T> with
+            // a data property, but update expects Record<string, unknown>. We cast to
+            // satisfy the function signature while maintaining runtime compatibility.
             update(
               this.cache as unknown as Record<string, unknown>,
               responseObj as unknown as Record<string, unknown>,
@@ -262,6 +270,11 @@ export class ObsidianClient {
 
         // Handle update function
         if (update) {
+          // Double cast necessary: this.cache is LFUCache | LRUCache | WTinyLFUCache,
+          // but update function expects Record<string, unknown>. Cache classes don't
+          // implement this interface directly. responseObj is GraphQLResponse<T> with
+          // a data property, but update expects Record<string, unknown>. We cast to
+          // satisfy the function signature while maintaining runtime compatibility.
           update(
             this.cache as unknown as Record<string, unknown>,
             responseObj as unknown as Record<string, unknown>,

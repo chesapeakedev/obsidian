@@ -22,7 +22,9 @@ interface RedisClient {
   hset: (key: string, ...fieldValues: string[]) => Promise<number>;
   hget: (key: string, field: string) => Promise<string | null>;
   hgetall: (key: string) => Promise<string[]>;
-  flushdb: (callback?: (err: Error | null, successful: string) => void) => Promise<string>;
+  flushdb: (
+    callback?: (err: Error | null, successful: string) => void,
+  ) => Promise<string>;
 }
 
 // set up a redis server
@@ -46,7 +48,10 @@ export class Cache {
       ROOT_MUTATION: {},
     },
   ) {
-    this.storage = initialCache;
+    // Double cast necessary: InitialCache has specific properties (ROOT_QUERY, ROOT_MUTATION)
+    // but storage needs Record<string, unknown> for dynamic indexing. InitialCache lacks
+    // an index signature, so we must cast through unknown to assign it to the storage property.
+    this.storage = initialCache as unknown as Record<string, unknown>;
     this.context = "server";
   }
 
@@ -78,7 +83,11 @@ export class Cache {
   //if you pass a false value to overwrite, it will append the list items to the end
 
   //Probably be used in normalize
-  cacheWriteList = async (hash: string, array: unknown[], overwrite: boolean = true): Promise<void> => {
+  cacheWriteList = async (
+    hash: string,
+    array: unknown[],
+    overwrite: boolean = true,
+  ): Promise<void> => {
     if (overwrite) {
       await redis.del(hash);
     }
@@ -93,11 +102,16 @@ export class Cache {
     return cachedArray;
   };
 
-  cacheWriteObject = async (hash: string, obj: Record<string, unknown>): Promise<void> => {
-    let entries = Object.entries(obj).flat();
-    entries = entries.map((entry) => JSON.stringify(entry));
+  cacheWriteObject = async (
+    hash: string,
+    obj: Record<string, unknown>,
+  ): Promise<void> => {
+    const entries = Object.entries(obj).flat();
+    const stringEntries = entries.map((entry) =>
+      JSON.stringify(entry)
+    ) as string[];
 
-    await redis.hset(hash, ...entries);
+    await redis.hset(hash, ...stringEntries);
   };
 
   cacheReadObject = async (hash: string, field?: string): Promise<unknown> => {
@@ -169,15 +183,6 @@ export class Cache {
     }
   }
 
-  async cacheWriteList(hash: string, array: string[]): Promise<void> {
-    await redis.rpush(hash, ...array);
-  }
-
-  async cacheReadList(hash: string): Promise<string[]> {
-    const cachedArray = await redis.lrange(hash, 0, -1);
-    return cachedArray;
-  }
-
   async cacheDelete(hash: string): Promise<void> {
     // deletes the hash/value pair on either object cache or redis cache
     if (this.context === "client") {
@@ -211,14 +216,15 @@ export class Cache {
     const tildeInd = allHashes[0].indexOf("~");
     const typeName = allHashes[0].slice(0, tildeInd);
     const reduction = await allHashes.reduce(async (acc, hash) => {
+      const resolvedAcc = await acc;
       const readStr = await redis.get(hash);
-      if (!readStr) return undefined;
+      if (!readStr) return resolvedAcc;
       const readVal = JSON.parse(readStr);
-      if (!readVal) return;
+      if (!readVal) return resolvedAcc;
       const dataObj: Record<string, unknown> = {};
       // iterate over the fields object to populate with data from cache
       if (typeof fields !== "object" || fields === null) {
-        return undefined;
+        return resolvedAcc;
       }
       const readValRecord = readVal as Record<string, unknown>;
       for (const field in fields) {
@@ -237,15 +243,14 @@ export class Cache {
               fields[field] as Record<string, unknown>,
             );
           } else {
-            return undefined;
+            return resolvedAcc;
           }
-          if (dataObj[field] === undefined) return;
+          if (dataObj[field] === undefined) return resolvedAcc;
         }
       }
       // at this point acc should be an array of response objects for each hash
-      const resolvedProm = await Promise.resolve(acc);
-      resolvedProm.push(dataObj);
-      return resolvedProm;
+      resolvedAcc.push(dataObj);
+      return resolvedAcc;
     }, Promise.resolve([] as unknown[]));
     return reduction;
   }

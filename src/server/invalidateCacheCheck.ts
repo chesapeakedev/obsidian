@@ -3,8 +3,9 @@ import * as gqlModule from "graphql-tag";
 // @ts-expect-error - graphql-tag default export is callable but types may not reflect this in Deno
 // FIXME: fork graphql-tag to make it more deno-y
 const gql = gqlModule.default as (query: string) => unknown;
-import { visit } from "graphql";
+import { type DocumentNode, visit } from "graphql";
 import { scope } from "./Obsidian.ts";
+import { Cache } from "./cache/quickCache.ts";
 
 function isObject(object: unknown): boolean {
   return object != null && typeof object === "object";
@@ -24,7 +25,11 @@ export function deepEqual(
     const val2 = object2[key];
     const areObjects = isObject(val1) && isObject(val2);
     if (
-      areObjects && !deepEqual(val1, val2) ||
+      areObjects &&
+        !deepEqual(
+          val1 as Record<string, unknown>,
+          val2 as Record<string, unknown>,
+        ) ||
       !areObjects && val1 !== val2
     ) {
       return false;
@@ -42,7 +47,7 @@ export function deepEqual(
  */
 export function isMutation(gqlQuery: { query: string }): boolean {
   let isMutation: boolean = false;
-  const ast = gql(gqlQuery.query) as {
+  const ast = gql(gqlQuery.query) as unknown as {
     definitions: Array<{
       selectionSet: { selections: Array<Record<string, unknown>> };
     }>;
@@ -65,7 +70,10 @@ export function isMutation(gqlQuery: { query: string }): boolean {
     },
   };
 
-  visit(ast, { enter: subscriptionTunnelVisitor, leave: checkMutationVisitor });
+  visit(ast as unknown as DocumentNode, {
+    enter: subscriptionTunnelVisitor,
+    leave: checkMutationVisitor,
+  });
   return isMutation;
 }
 
@@ -89,22 +97,26 @@ export async function invalidateCache(
 
   // Common case is that we get one mutation at a time. But it's possible to group multiple mutation queries into one.
   // That's why the for loop is needed
+  const cache = scope.cache as Cache;
   for (const redisKey in normalizedMutation) {
     normalizedData = normalizedMutation[redisKey];
-    cachedVal = await scope.cache.cacheReadObject(redisKey);
+    cachedVal = await cache.cacheReadObject(redisKey) as
+      | Record<string, unknown>
+      | undefined;
 
     // if response objects from mutation and cache are deeply equal then we delete it from cache because it infers that it's a delete mutation
     if (
-      (cachedVal !== undefined && deepEqual(normalizedData, cachedVal)) ||
+      (cachedVal !== undefined &&
+        deepEqual(normalizedData as Record<string, unknown>, cachedVal)) ||
       isDelete(queryString)
     ) {
-      await scope.cache.cacheDelete(redisKey);
+      await cache.cacheDelete(redisKey);
     } else {
       // Otherwise it's an update or add mutation because response objects from mutation and cache don't match.
       // We overwrite the existing cache value or write new data if cache at that key doesn't exist
       // Edge case: update is done without changing any values... cache will be deleted from redis because the response obj and cached obj will be equal
       if (cachedVal === undefined) { // checks if add mutation
-        const ast = gql(queryString) as {
+        const ast = gql(queryString) as unknown as {
           definitions: Array<{
             selectionSet: {
               selections: Array<{
@@ -116,22 +128,33 @@ export async function invalidateCache(
         const mutationType =
           ast.definitions[0].selectionSet.selections[0].name.value; // Extracts mutationType from query string
 
-        const staleRefs: Array<string> = mutationTableMap[mutationType]; // Grabs array of affected data tables from dev specified mutationTableMap
+        const staleRefs = mutationTableMap[mutationType] as
+          | string[]
+          | undefined; // Grabs array of affected data tables from dev specified mutationTableMap
 
-        const rootQueryContents = await scope.cache.redis.hgetall("ROOT_QUERY"); // Creates array of all query keys and values in ROOT_QUERY from Redis
+        if (staleRefs) {
+          const redisClient = cache.redis as {
+            hgetall: (key: string) => Promise<Record<string, string>>;
+            hdel: (key: string, field: string) => Promise<number>;
+          };
+          const rootQueryContents = await redisClient.hgetall("ROOT_QUERY"); // Creates array of all query keys and values in ROOT_QUERY from Redis
 
-        for (let j = 0; j < staleRefs.length; j++) { // Checks for all query keys that refer to the affected tables and deletes them from Redis
-          for (let i = 0; i < rootQueryContents.length; i += 2) {
-            if (
-              staleRefs[j] ===
-                rootQueryContents[i].slice(0, staleRefs[j].length)
-            ) {
-              scope.cache.redis.hdel("ROOT_QUERY", rootQueryContents[i]);
+          for (let j = 0; j < staleRefs.length; j++) { // Checks for all query keys that refer to the affected tables and deletes them from Redis
+            for (const key in rootQueryContents) {
+              if (
+                staleRefs[j] ===
+                  key.slice(0, staleRefs[j].length)
+              ) {
+                await redisClient.hdel("ROOT_QUERY", key);
+              }
             }
           }
         }
       }
-      await scope.cache.cacheWriteObject(redisKey, normalizedData); // Adds or updates reference in redis cache
+      await cache.cacheWriteObject(
+        redisKey,
+        normalizedData as Record<string, unknown>,
+      ); // Adds or updates reference in redis cache
     }
   }
 }

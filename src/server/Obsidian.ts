@@ -4,7 +4,7 @@ import { renderPlaygroundPage } from "graphql-playground-html";
 import { Cache } from "./cache/quickCache.ts";
 import queryDepthLimiter from "./DoSSecurity.ts";
 import { restructure } from "./restructure.ts";
-import { normalizeObject } from "./normalize.ts";
+import { type GenericObject, normalizeObject } from "./normalize.ts";
 import { invalidateCache, isMutation } from "./invalidateCacheCheck.ts";
 import { mapSelectionSet as _mapSelectionSet } from "./mapSelections.ts";
 import { HashTable } from "./queryHash.ts";
@@ -60,10 +60,18 @@ export function ObsidianService({
   maxQueryDepth = 0,
   customIdentifier = ["__typename", "_id"],
   mutationTableMap = {}, // Developer passes in object where keys are add mutations and values are arrays of affected tables
-}: ObsidianServiceOptions): Promise<(req: Request) => Promise<Response>> {
-  const schema = makeExecutableSchema({ typeDefs, resolvers });
+}: ObsidianServiceOptions): (req: Request) => Promise<Response> {
+  const schema = makeExecutableSchema({
+    typeDefs: typeDefs as Parameters<
+      typeof makeExecutableSchema
+    >[0]["typeDefs"],
+    resolvers: resolvers as Parameters<
+      typeof makeExecutableSchema
+    >[0]["resolvers"],
+  });
 
-  let cache, hashTable;
+  let cache: Cache | undefined;
+  let hashTable: HashTable | undefined;
   if (useCache) {
     cache = new Cache();
     scope.cache = cache;
@@ -97,21 +105,21 @@ export function ObsidianService({
 
         if (persistQueries && body.hash && !body.query) {
           const { hash } = body;
-          queryStr = hashTable.get(hash);
+          queryStr = hashTable!.get(hash as string);
           // if not found in hash table, respond so we can send full query.
           if (!queryStr) {
             return new Response(null, { status: 204 });
           }
         } else if (persistQueries && body.hash && body.query) {
           const { hash, query } = body;
-          hashTable.add(hash, query);
-          queryStr = query;
+          hashTable!.add(hash as string, query as string);
+          queryStr = query as string;
         } else if (persistQueries && !body.hash) {
           throw new Error(
             "Unable to process request because hashed query was not provided",
           );
         } else if (!persistQueries) {
-          queryStr = body.query;
+          queryStr = body.query as string;
         } else {
           throw new Error(
             "Unable to process request because query argument not provided",
@@ -120,12 +128,12 @@ export function ObsidianService({
 
         const contextResult = context ? await context(req) : undefined;
         // const selectedFields = mapSelectionSet(queryStr); // Gets requested fields from query and saves into an array
-        if (maxQueryDepth) queryDepthLimiter(queryStr, maxQueryDepth); // If a securty limit is set for maxQueryDepth, invoke queryDepthLimiter, which throws error if query depth exceeds maximum
-        const restructuredBody = { query: restructure({ query: queryStr }) }; // Restructure gets rid of variables and fragments from the query
+        if (maxQueryDepth) queryDepthLimiter(queryStr as string, maxQueryDepth); // If a securty limit is set for maxQueryDepth, invoke queryDepthLimiter, which throws error if query depth exceeds maximum
+        const restructuredQuery = restructure({ query: queryStr as string }); // Restructure gets rid of variables and fragments from the query
 
         // IF WE ARE USING A CACHE
-        if (useCache) {
-          const cacheQueryValue = await cache.read(queryStr); // Parses query string into query key and checks cache for that key
+        if (useCache && cache) {
+          const cacheQueryValue = await cache.read(queryStr as string); // Parses query string into query key and checks cache for that key
 
           // ON CACHE MISS
           if (!cacheQueryValue) {
@@ -139,29 +147,35 @@ export function ObsidianService({
               operationName?: string,
             ) => Promise<unknown>)(
               schema,
-              queryStr,
+              queryStr as string,
               resolvers,
               contextResult,
               body.variables || undefined,
-              body.operationName || undefined,
+              typeof body.operationName === "string"
+                ? body.operationName
+                : undefined,
             );
 
             // customIdentifier is a default param for Obsidian Service - defaults to ['__typename', '_id]
             const normalizedGQLResponse = normalizeObject( // Recursively flattens an arbitrarily nested object into an objects with hash key and hashable object pairs
-              gqlResponse,
+              gqlResponse as GenericObject,
               customIdentifier,
             );
 
             // If operation is mutation, invalidate relevant responses in cache
-            if (isMutation(restructuredBody)) {
+            if (restructuredQuery && isMutation({ query: restructuredQuery })) {
               invalidateCache(
-                normalizedGQLResponse,
-                queryStr,
+                normalizedGQLResponse as { [key: string]: object },
+                queryStr as string,
                 mutationTableMap,
               );
               // ELSE, simply write to the cache
             } else {
-              await cache.write(queryStr, normalizedGQLResponse, searchTerms);
+              await cache.write(
+                queryStr as string,
+                normalizedGQLResponse,
+                searchTerms,
+              );
             }
             // AFTER HANDLING THE CACHE, RETURN THE ORIGINAL RESPONSE
             return new Response(JSON.stringify(gqlResponse), {
@@ -191,11 +205,13 @@ export function ObsidianService({
             operationName?: string,
           ) => Promise<unknown>)(
             schema,
-            queryStr,
+            queryStr as string,
             resolvers,
             contextResult,
             body.variables || undefined,
-            body.operationName || undefined,
+            typeof body.operationName === "string"
+              ? body.operationName
+              : undefined,
           );
 
           return new Response(JSON.stringify(gqlResponse), {
@@ -206,15 +222,20 @@ export function ObsidianService({
           });
         }
       } catch (error) {
+        const errorMessage = error instanceof Error
+          ? error.message
+          : typeof error === "string"
+          ? error
+          : String(error);
         const errorResponse = {
           data: null,
           errors: [
             {
-              message: error.message ? error.message : String(error),
+              message: errorMessage,
             },
           ],
         };
-        console.error("Error: ", error.message || error);
+        console.error("Error: ", errorMessage);
         return new Response(JSON.stringify(errorResponse), {
           status: 400,
           headers: {

@@ -1,4 +1,7 @@
-import { assertEquals, assertThrows } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertThrows,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import queryDepthLimiter from "./DoSSecurity.ts";
 
 // Test fixtures

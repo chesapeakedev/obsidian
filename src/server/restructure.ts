@@ -118,19 +118,59 @@ export function restructure(
     },
   };
 
-  visit(ast, { leave: firstBuildVisitor });
+  // Type assertion necessary: GraphQL's visit expects specific AST node types, but our visitors
+  // use Record<string, unknown> for flexibility. The visitors are type-safe at runtime.
+  visit(
+    ast,
+    {
+      leave: firstBuildVisitor,
+    } as Parameters<typeof visit>[1],
+  );
 
-  ast = gql(print(visit(ast, { leave: firstRewriteVisitor }))) as DocumentNode;
-  visit(ast, { leave: checkFragmentationVisitor });
+  ast = gql(
+    print(
+      visit(
+        ast,
+        {
+          leave: firstRewriteVisitor,
+        } as Parameters<typeof visit>[1],
+      ),
+    ),
+  ) as unknown as DocumentNode;
+  visit(
+    ast,
+    {
+      leave: checkFragmentationVisitor,
+    } as Parameters<typeof visit>[1],
+  );
   while (containsFrags) {
     containsFrags = false;
     fragments = {};
-    visit(ast, { enter: buildFragsVisitor });
+    // Type assertion necessary: GraphQL's visit expects specific AST node types, but our visitors
+    // use Record<string, unknown> for flexibility. The visitors are type-safe at runtime.
+    visit(
+      ast,
+      {
+        enter: buildFragsVisitor,
+      } as Parameters<typeof visit>[1],
+    );
 
     ast = gql(
-      print(visit(ast, { leave: firstRewriteVisitor })),
-    ) as DocumentNode;
-    visit(ast, { leave: checkFragmentationVisitor });
+      print(
+        visit(
+          ast,
+          {
+            leave: firstRewriteVisitor,
+          } as Parameters<typeof visit>[1],
+        ),
+      ),
+    ) as unknown as DocumentNode;
+    visit(
+      ast,
+      {
+        leave: checkFragmentationVisitor,
+      } as Parameters<typeof visit>[1],
+    );
 
     //if existingFrags has a key that fragments does not
     const exfragskeys = Object.keys(existingFrags);
@@ -146,7 +186,14 @@ export function restructure(
     }
   }
 
-  ast = visit(ast, { leave: clearFragVisitor });
+  // Type assertion necessary: GraphQL's visit expects specific AST node types, but our visitors
+  // use Record<string, unknown> for flexibility. The visitors are type-safe at runtime.
+  ast = visit(
+    ast,
+    {
+      leave: clearFragVisitor,
+    } as Parameters<typeof visit>[1],
+  );
 
   return print(ast);
 }

@@ -95,11 +95,12 @@ function createRootQuery(
   _deleteFlag?: boolean,
 ): Record<string, unknown> {
   const output: Record<string, unknown> = {};
-  queryObjArr.forEach((query: Record<string, unknown>) => {
+  queryObjArr.forEach((query) => {
+    const queryRecord = query as Record<string, unknown>;
     // if query has an alias declare it
-    const alias = query.alias as string | null;
-    const name = query.name as string;
-    const args = query.arguments as string;
+    const alias = queryRecord.alias as string | null;
+    const name = queryRecord.name as string;
+    const args = queryRecord.arguments as string;
     const queryHash = name + args;
     const data = resultObj.data as Record<string, unknown>;
     const result = data[alias ?? ""] ?? data[name];
@@ -115,7 +116,7 @@ function createRootQuery(
       //store the array of hashes associated with the queryHash
       output[queryHash] = arrOfHashes;
     } else {
-      output[queryHash] = [labelId(result)];
+      output[queryHash] = [labelId(result as Record<string, unknown>)];
     }
   });
   return output;

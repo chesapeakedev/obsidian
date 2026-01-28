@@ -78,61 +78,92 @@ Deno.test("normalize.ts - isHashableObject - False test 2: object with hashable 
 // hashMaker
 Deno.test("normalize.ts - hashMaker - Creates unique hash when a hashable object is passed through", () => {
   assertStrictEquals(
-    hashMaker(data.isHashableObjTrue1, arrOfHashableKeys),
+    hashMaker(
+      data.isHashableObjTrue1 as Record<string, string | number>,
+      arrOfHashableKeys,
+    ),
     "~7~Movie",
   );
 });
 Deno.test("normalize.ts - hashMaker - Creates unique hash when a hashable object is passed through", () => {
   assertStrictEquals(
-    hashMaker(data.isHashableObjTrue2, arrOfHashableKeys),
+    hashMaker(
+      data.isHashableObjTrue2 as Record<string, string | number>,
+      arrOfHashableKeys,
+    ),
     "~1~Actor",
   );
 });
 
 // printHashableObject
 Deno.test("normalize.ts - printHashableObject - Prints a hashable object when object with hashable key properties and no nesting is passed through", () => {
-  assertEquals(printHashableObject(data.containsHashableObjTrue1), {
-    "id": "11",
-    "__typename": "Movie",
-    "title": "Ad Astra",
-  });
+  assertEquals(
+    printHashableObject(
+      data.containsHashableObjTrue1 as Record<string, unknown>,
+    ),
+    {
+      "id": "11",
+      "__typename": "Movie",
+      "title": "Ad Astra",
+    },
+  );
 });
 Deno.test("normalize.ts - printHashableObject - Prints a hashable object when object with hashable key properties and no nesting is passed through", () => {
-  assertEquals(printHashableObject(data.containsHashableObjTrue2), {
-    "id": "7",
-    "__typename": "Movie",
-    "title": "Ad Astra",
-    "releaseYear": 2019,
-    "genre": "SCIFI",
-  });
+  assertEquals(
+    printHashableObject(
+      data.containsHashableObjTrue2 as Record<string, unknown>,
+    ),
+    {
+      "id": "7",
+      "__typename": "Movie",
+      "title": "Ad Astra",
+      "releaseYear": 2019,
+      "genre": "SCIFI",
+    },
+  );
 });
 Deno.test("normalize.ts - printHashableObject - Prints a hashable object when object with hashable key properties and no nesting is passed through", () => {
-  assertEquals(printHashableObject(data.containsHashableObjTrue3), {
-    "id": "1",
-    "__typename": "Actor",
-    "firstName": "Brad",
-    "lastName": "Pitt",
-  });
+  assertEquals(
+    printHashableObject(
+      data.containsHashableObjTrue3 as Record<string, unknown>,
+    ),
+    {
+      "id": "1",
+      "__typename": "Actor",
+      "firstName": "Brad",
+      "lastName": "Pitt",
+    },
+  );
 });
 
 // normalizeObject
 Deno.test("normalize.ts - normalizeObject - Constructs an object of reference caches. Key being the hash used as redis key and value being object that is stored in redis", () => {
   assertEquals(
-    normalizeObject(data.scifiMovies, ["id", "__typename"]),
+    normalizeObject(data.scifiMovies as Record<string, unknown>, [
+      "id",
+      "__typename",
+    ]),
     data.scifiMoviesNormalized,
   );
 });
 
 Deno.test("normalize.ts - normalizeObject - Constructs an object of reference caches. Key being the hash used as redis key and value being object that is stored in redis", () => {
   assertEquals(
-    normalizeObject(data.arbitraryNestedScifiMovies, ["id", "__typename"]),
+    normalizeObject(
+      data.arbitraryNestedScifiMovies as Record<string, unknown>,
+      ["id", "__typename"],
+    ),
     data.arbitraryNestedScifiMoviesNormalized,
   );
 });
 
 Deno.test("normalize.ts - normalizeObject - returns empty object if values in customIdentifier argument are not found in the nested response object", () => {
   assertEquals(
-    normalizeObject(data.scifiMovies, ["identifier", "uid", "someType"]),
+    normalizeObject(data.scifiMovies as Record<string, unknown>, [
+      "identifier",
+      "uid",
+      "someType",
+    ]),
     {},
   );
 });

@@ -19,8 +19,11 @@ type GqlFunction = (
 // Source: graphql-tag/lib/index.d.ts line 14: export default gql;
 type GqlDefaultExport = GqlFunction;
 
-// Cast is necessary because Deno's type system does not properly recognize that
-// graphql-tag's default export is callable, so we explicitly cast to our vendored type
+// Double cast necessary: graphql-tag's default export is a callable function, but when
+// imported via namespace import (* as gqlModule), TypeScript sees it as a namespace type
+// rather than the function type. We must cast through unknown first because there's no
+// direct type relationship between the namespace default property and our GqlFunction type.
+// This is a limitation of how graphql-tag's types are structured in Deno's module system.
 const gql = gqlModule.default as unknown as GqlDefaultExport;
 
 export { gql, ObsidianService };

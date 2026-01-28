@@ -1,9 +1,5 @@
-import {
-  assertEquals,
-} from "https://deno.land/std@0.208.0/assert/mod.ts";
-import {
-  transformResponse,
-} from "./transformResponse.test.helper.ts";
+import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import { transformResponse } from "./transformResponse.test.helper.ts";
 import { test } from "./transformResponse.test.fixtures.ts";
 
 // transformResponse

@@ -41,8 +41,12 @@ export const isHashableObject = (
   hashableKeys: Array<string>,
 ): boolean => {
   if (!containsHashableObject(objectInQuestion, hashableKeys)) return false;
-  for (const key in objectInQuestion) {
-    if (typeof objectInQuestion[key] === "object") return false;
+  if (typeof objectInQuestion !== "object" || objectInQuestion === null) {
+    return false;
+  }
+  const obj = objectInQuestion as Record<string, unknown>;
+  for (const key in obj) {
+    if (typeof obj[key] === "object") return false;
   }
   return true;
 };
@@ -128,16 +132,16 @@ export const normalizeObject = (
     ) {
       hasAlreadyPrinted = true;
       const hashableObject = printHashableObject(nestedObject);
-      const hash = hashMaker(hashableObject, hashableKeys);
+      const hash = hashMaker(hashableObject as FlatObject, hashableKeys);
       if (
         !Object.prototype.hasOwnProperty.call(normalizedHashableObjects, hash)
       ) {
         normalizedHashableObjects[hash] = hashableObject;
       }
     }
-    if (typeof nestedObject[key] === "object") {
+    if (typeof nestedObject[key] === "object" && nestedObject[key] !== null) {
       normalizeObject(
-        nestedObject[key],
+        nestedObject[key] as GenericObject,
         hashableKeys,
         normalizedHashableObjects,
       );

@@ -32,8 +32,6 @@
   allowing data cached from complete dataset pulls to be accessible later on in
   searches for individual items
 - Refactored server-side caching with Redis
-- Rebuilt developer tool for Obsidian 8.0 for testing and analytics related to
-  the new client caching options
 - Option for persistent queries, allowing only a smaller hash to be sent to the
   server on client-side cache misses, minimizing the cost of queries. Note that
   while this will increase the overall performance for frequent, repeat queries.
