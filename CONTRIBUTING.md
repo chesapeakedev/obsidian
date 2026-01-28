@@ -50,7 +50,6 @@ Creates an HTTP handler for Deno's HTTP server with GraphQL caching.
 - Redis-backed server-side cache
 - Query normalization and restructuring
 - Persistent queries via hash table
-- GraphQL Playground support
 - DoS protection via query depth limiting
 
 **Configuration:** `useCache`, `redisPort`, `persistQueries`, `maxQueryDepth`,
@@ -213,8 +212,7 @@ https://github.com/settings/tokens
 
 **Server-side:**
 
-- `graphql`, `@graphql-tools/schema`, `graphql-tag`, `graphql-playground-html`
-  (npm)
+- `graphql`, `@graphql-tools/schema`, `graphql-tag` (npm)
 - `@akin01/deno-redis` (JSR)
 
 **Client-side:**

@@ -1,6 +1,5 @@
 import { graphql } from "graphql";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { renderPlaygroundPage } from "graphql-playground-html";
 import { Cache } from "./cache/quickCache.ts";
 import queryDepthLimiter from "./DoSSecurity.ts";
 import { restructure } from "./restructure.ts";
@@ -14,7 +13,6 @@ export interface ObsidianServiceOptions {
   typeDefs: unknown;
   resolvers: ResolversProps;
   context?: (req: Request) => unknown | Promise<unknown>;
-  usePlayground?: boolean;
   useCache?: boolean;
   redisPort?: number;
   policy?: string;
@@ -49,7 +47,6 @@ export function ObsidianService({
   typeDefs,
   resolvers,
   context,
-  usePlayground = false,
   useCache = true, // default to true
   redisPort = 6379,
   policy = "allkeys-lru",
@@ -240,31 +237,6 @@ export function ObsidianService({
           status: 400,
           headers: {
             "content-type": "application/json; charset=utf-8",
-          },
-        });
-      }
-    }
-
-    // Handle GET requests (GraphQL Playground)
-    if (req.method === "GET" && usePlayground) {
-      const acceptHeader = req.headers.get("accept") || "";
-      const prefersHTML = acceptHeader.includes("text/html");
-
-      if (prefersHTML) {
-        const optionsObj: Record<string, unknown> = {
-          "schema.polling.enable": false, // enables automatic schema polling
-        };
-
-        const playground = renderPlaygroundPage({
-          endpoint: url.origin + path,
-          subscriptionEndpoint: url.origin,
-          settings: optionsObj,
-        });
-
-        return new Response(playground, {
-          status: 200,
-          headers: {
-            "content-type": "text/html; charset=utf-8",
           },
         });
       }
