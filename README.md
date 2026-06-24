@@ -17,8 +17,8 @@ need a Deno-native GitHub client, Obsidian provides the tools you need.
 - 🐙 **GitHub-first**: Specialized `GithubClient` with rate limit tracking and
   GitHub API optimizations
 - 📦 **JSR package**: Published on
-  [JSR](https://jsr.io/@chesapeake/obsidian-gql) for easy usage in Deno, Node,
-  and bun environments
+  [JSR](https://jsr.io/@chesapeake/obsidian-gql) for Deno and for Node.js/Bun
+  client usage via JSR's npm compatibility layer
 
 ## Quick Start
 
@@ -124,6 +124,19 @@ import {
 
 No configuration needed - Deno will automatically download and cache the package
 on first import.
+
+### Runtime compatibility
+
+| Component                               | Deno      | Node.js / Bun     |
+| --------------------------------------- | --------- | ----------------- |
+| `ObsidianClient`, `GithubClient`, `gql` | Supported | Supported         |
+| `ObsidianService` (server)              | Supported | Not yet supported |
+
+Node.js and Bun compatibility currently applies to the **client API only**.
+`ObsidianService` depends on Deno-specific server dependencies (for example
+`@akin01/deno-redis`) and is intended for Deno deployments today. Server-side
+Node.js support is tracked in
+[GitHub issue #1](https://github.com/chesapeakedev/obsidian/issues/1).
 
 ## Features
 
