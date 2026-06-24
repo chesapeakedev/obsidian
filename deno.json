@@ -1,12 +1,17 @@
 {
   "name": "@chesapeake/obsidian-gql",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "exports": {
     ".": "./mod.ts"
   },
   "publish": {
     "include": ["./src/**/*.ts", "./mod.ts", "./README.md"],
-    "exclude": ["./src/**/*.test.ts", "./src/**/*.test.fixtures.ts", "./src/**/*.test.helper.ts", "./src/**/*.test.write.fixtures.ts"]
+    "exclude": [
+      "./src/**/*.test.ts",
+      "./src/**/*.test.fixtures.ts",
+      "./src/**/*.test.helper.ts",
+      "./src/**/*.test.write.fixtures.ts"
+    ]
   },
   "imports": {
     "@graphql-tools/schema": "npm:@graphql-tools/schema@^10.0.31",
@@ -63,7 +68,7 @@
     "test": "deno test --allow-env --allow-net",
     "test:server": "deno test --allow-env --allow-net src/server/",
     "test:client": "deno test --allow-net --allow-env src/client/",
-    "check": "deno fmt --check && deno lint && deno check **/*.ts",
+    "check": "deno fmt --check && deno lint && deno run --allow-read=. --allow-run=sl hack/check_tracked_path_case.ts && deno check .",
     "publish": "deno publish"
   }
 }

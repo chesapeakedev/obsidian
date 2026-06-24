@@ -1,3 +1,4 @@
+/** Probabilistic frequency sketch used by W-TinyLFU admission policy. */
 export class FrequencySketch {
   private readonly RESET_MASK = 0x77777777; // 011101110111... 0001 0000 0000 0001 0000
   private readonly ONE_MASK = 0x11111111; //  0001 0001 0001

@@ -16,6 +16,7 @@ class Node {
   }
 }
 
+/** Least Recently Used (LRU) in-memory GraphQL response cache. */
 export default class LRUCache {
   capacity: number;
   currentSize: number;

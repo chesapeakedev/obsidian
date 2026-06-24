@@ -1,6 +1,8 @@
 /** @format */
 
-// this function will insert __typename meta fields into a querystring
+/**
+ * Inserts `__typename` selections into a GraphQL query string for cache normalization.
+ */
 export function insertTypenames(queryOperationStr: string): string {
   let newQueryStr = "";
   // removes extra whitespace
@@ -35,7 +37,7 @@ export function insertTypenames(queryOperationStr: string): string {
   return newQueryStr;
 }
 
-// helper function to add typenames to fieldsStr where needed
+/** Adds `__typename` fields to a GraphQL selection set string. */
 export function addTypenamesToFieldsStr(fieldsStr: string): string {
   let newFieldsStr = fieldsStr;
   let currentOpenBrace = 0;
@@ -65,7 +67,7 @@ export function addTypenamesToFieldsStr(fieldsStr: string): string {
   return newFieldsStr;
 }
 
-// helper function to find the partner closing brace
+/** Returns the index of the closing brace that matches the opening brace at `index`. */
 export function findClosingBrace(str: string, index: number): number {
   let bracePairs = 0;
   // skips ahead 1 index to skip first brace

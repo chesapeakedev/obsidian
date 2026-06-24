@@ -2,6 +2,7 @@
 
 // Normalizes responses using the query object from destructure and the response object from
 // the graphql request
+/** Normalizes a GraphQL response into cache-friendly hash references. */
 export default function normalizeResult(
   queryObj: Record<string, unknown>,
   resultObj: Record<string, unknown>,

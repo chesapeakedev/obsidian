@@ -21,6 +21,9 @@ jobs:
         with:
           deno-version: v2
 
+      - name: Validate package
+        run: make ci
+
       - name: Publish package to JSR
         run: make publish
         env:

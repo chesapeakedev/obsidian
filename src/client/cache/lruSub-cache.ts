@@ -11,6 +11,7 @@ class Node {
   }
 }
 
+/** LRU cache segment used by W-TinyLFU and SLRU sub-caches. */
 export default class LRUCache {
   capacity: number;
   currentSize: number;

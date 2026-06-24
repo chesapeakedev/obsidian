@@ -8,13 +8,16 @@ import LRUCache from "./cache/lruCache.ts";
 import WTinyLFUCache from "./cache/wTinyLFUBrowserCache.ts";
 import { insertTypenames } from "./insertTypenames.ts";
 
+/** Supported client-side cache eviction algorithms. */
 export type CacheAlgorithm = "LFU" | "LRU" | "W-TinyLFU";
 
+/** Request details passed to the `beforeFetch` hook. */
 export interface BeforeFetchRequest {
   url: string;
   options: RequestInit;
 }
 
+/** Authentication failure details passed to the `onAuthError` hook. */
 export interface AuthError {
   status: number;
   response: Response;
@@ -25,6 +28,7 @@ export interface AuthError {
   }>;
 }
 
+/** Options for {@link ObsidianClient}. */
 export interface ObsidianClientOptions {
   /** GraphQL endpoint URL */
   endpoint?: string;
@@ -55,6 +59,7 @@ export interface ObsidianClientOptions {
   onAuthError?: (error: AuthError) => void | Promise<void>;
 }
 
+/** Per-request options for {@link ObsidianClient.query}. */
 export interface QueryOptions {
   /** GraphQL endpoint URL (overrides client default) */
   endpoint?: string;
@@ -91,6 +96,7 @@ export interface QueryOptions {
   method?: "GET" | "POST";
 }
 
+/** Per-request options for {@link ObsidianClient.mutate}. */
 export interface MutationOptions {
   /** GraphQL endpoint URL (overrides client default) */
   endpoint?: string;
@@ -797,13 +803,30 @@ export class ObsidianClient {
 }
 
 /**
- * GitHub-specific GraphQL Client
- *
- * Extends ObsidianClient with GitHub GraphQL API conventions:
- * - Enforces POST-only requests (GitHub requires POST for all GraphQL operations)
- * - Default endpoint: https://api.github.com/graphql
- * - Bearer token authentication convenience
- * - Rate limit information helpers
+ * GitHub-specific options for {@link GithubClient}.
+ */
+export interface GithubClientOptions
+  extends Omit<ObsidianClientOptions, "endpoint"> {
+  /** GitHub personal access token (automatically sets Authorization header) */
+  token?: string;
+  /** GraphQL endpoint (defaults to GitHub's API) */
+  endpoint?: string;
+}
+
+/** GitHub API rate limit metadata from response headers. */
+export interface RateLimitInfo {
+  /** Maximum requests allowed in the current window. */
+  limit: number;
+  /** Remaining requests in the current window. */
+  remaining: number;
+  /** Unix timestamp when the rate limit resets. */
+  reset: number;
+  /** Requests consumed in the current window. */
+  used: number;
+}
+
+/**
+ * GitHub-specific GraphQL client with POST-only requests and rate-limit helpers.
  *
  * @example
  * ```typescript
@@ -822,26 +845,10 @@ export class ObsidianClient {
  *   { variables: { owner: "denoland", name: "deno" } }
  * );
  *
- * // Check rate limits
  * const rateLimit = github.getRateLimit();
  * console.log(`Remaining: ${rateLimit?.remaining}/${rateLimit?.limit}`);
  * ```
  */
-export interface GithubClientOptions
-  extends Omit<ObsidianClientOptions, "endpoint"> {
-  /** GitHub personal access token (automatically sets Authorization header) */
-  token?: string;
-  /** GraphQL endpoint (defaults to GitHub's API) */
-  endpoint?: string;
-}
-
-export interface RateLimitInfo {
-  limit: number;
-  remaining: number;
-  reset: number; // Unix timestamp
-  used: number;
-}
-
 export class GithubClient extends ObsidianClient {
   private rateLimitInfo: RateLimitInfo | null = null;
 

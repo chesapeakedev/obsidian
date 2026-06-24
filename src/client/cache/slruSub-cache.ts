@@ -1,8 +1,6 @@
 import LRUCache from "./lruSub-cache.ts";
 
-/*****
- * Main SLRU Cache
- *****/
+/** Segmented LRU cache used as the protected region of W-TinyLFU. */
 export default class SLRUCache {
   probationaryLRU: LRUCache;
   protectedLRU: LRUCache;
