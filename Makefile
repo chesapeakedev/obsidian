@@ -1,9 +1,28 @@
 SHELL := bash
 
-.PHONY: default publish sync lint format tests ci format_check lint_deno check_deno bump_patch bump_minor bump_major
+.PHONY: default publish release sync lint format tests ci format_check lint_deno check_deno bump_patch bump_minor bump_major
 
 default: lint
 publish: ; deno task publish
+release:
+	@set -euo pipefail; \
+	command -v dn >/dev/null || (echo "dn is required for make release"; exit 1); \
+	version=$$(deno eval 'const pkg = JSON.parse(await Deno.readTextFile("deno.json")); console.log(pkg.version);'); \
+	tag="v$$version"; \
+	echo "Releasing @chesapeake/obsidian-gql $$tag"; \
+	if dn release view "$$tag" >/dev/null 2>&1; then \
+		echo "GitHub release $$tag already exists"; \
+		exit 1; \
+	fi; \
+	$(MAKE) lint; \
+	if [ -n "$$(sl status)" ]; then \
+		sl commit -A -m "release $$version"; \
+	else \
+		echo "No pending changes to commit."; \
+	fi; \
+	sl push --to master; \
+	dn release create "$$tag" --title "$$tag" --generate-notes; \
+	echo "Created GitHub release $$tag. The publish-to-jsr workflow publishes it to JSR."
 sync: ./hack/repo_sync.sh
 	$(SHELL) ./hack/repo_sync.sh
 
@@ -86,4 +105,3 @@ bump_major:
 	new_version="$$((major + 1)).0.0"; \
 	sed -i '' "s/\"version\": \"$$current\"/\"version\": \"$$new_version\"/" deno.json; \
 	echo "Bumped version from $$current to $$new_version"
-

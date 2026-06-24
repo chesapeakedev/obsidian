@@ -523,7 +523,7 @@ export class ObsidianClient {
     endpoint: string,
     cacheWrite: boolean,
     wholeQuery: boolean,
-    startTime: number,
+    _startTime: number,
     customHeaders?: Record<string, string>,
     variables?: Record<string, unknown>,
     method: "GET" | "POST" = "POST",
@@ -704,9 +704,6 @@ export class ObsidianClient {
           }
         }
       }
-
-      const cacheMissResponseTime = Date.now() - startTime;
-      console.log(cacheMissResponseTime);
 
       return resObj;
     } catch (e) {

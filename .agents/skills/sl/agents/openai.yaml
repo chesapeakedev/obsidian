@@ -1,0 +1,3 @@
+display_name: Sapling
+short_description: Use Sapling SCM and the one-command JSR release flow in obsidian.
+default_prompt: Use Sapling in this repository. Check status with sl, inspect diffs with sl diff, and release with make release after confirming the version in deno.json.
