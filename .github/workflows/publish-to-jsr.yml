@@ -26,5 +26,3 @@ jobs:
 
       - name: Publish package to JSR
         run: make publish
-        env:
-          JSR_TOKEN: ${{ secrets.JSR_TOKEN }}
