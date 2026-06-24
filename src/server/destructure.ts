@@ -8,7 +8,7 @@
  * @include) 5. We won't worry about fragments for now 6. This function will assume that everything passed in can be a query or a mutation (not both). 8. We will handle only the meta field "__typename" for now 9. What edge cases as far as field/query names do we have to worry about: special characters, apostrophes, etc??? 10. Directives-implementation doesn't handle fragment inclusion
  */
 
-// this function will destructure a query/mutation operation string into a query/mutation operation object
+/** Parses a GraphQL operation string into structured query or mutation objects. */
 export function destructureQueries(
   queryOperationStr: string,
   queryOperationVars?: Record<string, unknown>,
@@ -52,6 +52,7 @@ export function destructureQueries(
 }
 
 // helper function to create an array of individual query strings from an operation string
+/** Extracts top-level query strings from a multi-operation GraphQL document. */
 export function findQueryStrings(queryStrings: string): string[] {
   const result: string[] = [];
   let queryStartIndex = 1;
@@ -87,6 +88,7 @@ export function findQueryStrings(queryStrings: string): string[] {
 }
 
 // helper function to create a queries object from an array of query strings
+/** Builds a destructured query object from parsed query strings. */
 export function createQueriesObj(
   arrayOfQueryStrings: string[],
   typePropName: string,
@@ -109,6 +111,7 @@ export function createQueriesObj(
 }
 
 // helper function that returns an object with a query string split into multiple parts
+/** Splits a single query string into alias, name, arguments, and fields. */
 export function splitUpQueryStr(
   queryStr: string,
   queryVars?: Record<string, unknown>,
@@ -180,6 +183,7 @@ export function splitUpQueryStr(
 }
 
 // helper function to manipulate query args string by replacing variables
+/** Substitutes variable placeholders in a query string. */
 export function replaceQueryVariables(
   queryArgs: string,
   variables: Record<string, unknown>,
@@ -224,6 +228,7 @@ export function replaceQueryVariables(
 }
 
 // helper function to recursively convert the fields string to a fields object
+/** Parses a GraphQL fields string into a nested field map. */
 export function findQueryFields(fieldsStr: string): Record<string, unknown> {
   const fieldsObj: Record<string, unknown> = {};
   let fieldCache = "";
@@ -266,6 +271,7 @@ export function findQueryFields(fieldsStr: string): Record<string, unknown> {
 }
 
 // helper function to find the partner closing brace
+/** Returns the index of the closing brace that matches the opening brace at `index`. */
 export function findClosingBrace(str: string, index: number): number {
   let bracePairs = 0;
   // skips ahead 1 index to skip first brace
@@ -279,6 +285,7 @@ export function findClosingBrace(str: string, index: number): number {
 }
 
 // helper function to find fragments
+/** Destructures GraphQL operations that include fragment spreads. */
 export function destructureQueriesWithFragments(
   queryOperationStr: string,
 ): string {
@@ -350,6 +357,7 @@ export function destructureQueriesWithFragments(
 
 // handles query string with directives (@include, @skip) by keeping or omitting
 // fields depending on the value of the variable passed in
+/** Destructures GraphQL operations that include `@skip` and `@include` directives. */
 export function destructureQueriesWithDirectives(
   queryStr: string,
   queryVars?: Record<string, unknown>,

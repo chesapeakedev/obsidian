@@ -7,7 +7,9 @@ import { type GenericObject, normalizeObject } from "./normalize.ts";
 import { invalidateCache, isMutation } from "./invalidateCacheCheck.ts";
 import { mapSelectionSet as _mapSelectionSet } from "./mapSelections.ts";
 import { HashTable } from "./queryHash.ts";
+import { serviceScope } from "./serviceScope.ts";
 
+/** Configuration options for {@link ObsidianService}. */
 export interface ObsidianServiceOptions {
   path?: string;
   typeDefs: unknown;
@@ -25,22 +27,18 @@ export interface ObsidianServiceOptions {
   mutationTableMap?: Record<string, unknown>; // Deno recommended type name
 }
 
+/** GraphQL resolver map passed to {@link ObsidianService}. */
 export interface ResolversProps {
   Query?: unknown;
   Mutation?: unknown;
   [dynamicProperty: string]: unknown;
 }
 
-// Export developer chosen port for redis database connection //
-export const redisPortExport: number = 6379;
-
-// tentative fix to get invalidateCacheCheck.ts access to the cache;
-export const scope: Record<string, unknown> = {};
-
 /**
- * Creates an HTTP handler function for GraphQL requests using Deno's built-in HTTP server
- * @param options Configuration options for the Obsidian Service
- * @returns A handler function that can be used with Deno.serve
+ * Creates an HTTP handler function for GraphQL requests.
+ *
+ * @param options Configuration options for the Obsidian service.
+ * @returns A handler function compatible with `Deno.serve` and other `fetch`-style servers.
  */
 export function ObsidianService({
   path = "/graphql",
@@ -71,7 +69,7 @@ export function ObsidianService({
   let hashTable: HashTable | undefined;
   if (useCache) {
     cache = new Cache();
-    scope.cache = cache;
+    serviceScope.cache = cache;
     cache.connect(redisPort, policy, maxmemory);
   }
   if (persistQueries) {

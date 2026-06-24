@@ -53,6 +53,8 @@ export const isHashableObject = (
 /* ----------------------------------------------------------------*/
 
 /* ----------------------------------------------------------------*/
+
+/** Arbitrary nested object used during server-side normalization. */
 export type GenericObject = { [key: string]: unknown };
 type FlatObject = { [key: string]: string | number | boolean };
 /** hashMaker -

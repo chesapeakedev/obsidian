@@ -1,4 +1,17 @@
-// Server-side exports
+/**
+ * Obsidian GraphQL client and server for Deno.
+ *
+ * @example
+ * ```ts
+ * import { ObsidianClient } from "@chesapeake/obsidian-gql";
+ *
+ * const client = new ObsidianClient({ endpoint: "/graphql" });
+ * await client.query(`query { movies { id title } }`);
+ * ```
+ *
+ * @module
+ */
+
 import { ObsidianService } from "./src/server/Obsidian.ts";
 import * as gqlModule from "graphql-tag";
 import type { DocumentNode } from "graphql/language/ast";
@@ -24,6 +37,9 @@ type GqlDefaultExport = GqlFunction;
 // rather than the function type. We must cast through unknown first because there's no
 // direct type relationship between the namespace default property and our GqlFunction type.
 // This is a limitation of how graphql-tag's types are structured in Deno's module system.
+/**
+ * Parse GraphQL source into a `DocumentNode` AST (re-export of `graphql-tag`).
+ */
 const gql = gqlModule.default as unknown as GqlDefaultExport;
 
 export { gql, ObsidianService };

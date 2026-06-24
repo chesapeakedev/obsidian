@@ -18,6 +18,7 @@ interface InitialCache {
   ROOT_MUTATION: Record<string, unknown>;
 }
 
+/** Redis-backed server-side GraphQL response cache. */
 export class Cache {
   ROOT_QUERY: Record<string, unknown>;
   ROOT_MUTATION: Record<string, unknown>;

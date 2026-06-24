@@ -4,13 +4,14 @@ import * as gqlModule from "graphql-tag";
 // FIXME: fork graphql-tag to make it more deno-y
 const gql = gqlModule.default as (query: string) => unknown;
 import { type DocumentNode, visit } from "graphql";
-import { scope } from "./Obsidian.ts";
+import { serviceScope } from "./serviceScope.ts";
 import { Cache } from "./cache/quickCache.ts";
 
 function isObject(object: unknown): boolean {
   return object != null && typeof object === "object";
 }
 
+/** Recursively compares two plain objects for deep equality. */
 export function deepEqual(
   object1: Record<string, unknown>,
   object2: Record<string, unknown>,
@@ -41,9 +42,9 @@ export function deepEqual(
 // const cache = new Cache();
 
 /**
- * @param {any} gqlQuery - Object containing the query string
- * @param {boolean} isMutation - Boolean indicating if it's a mutation query
- * @return {boolean} isMutation
+ * Returns whether a GraphQL operation string is a mutation.
+ *
+ * @param gqlQuery Object containing the query string.
  */
 export function isMutation(gqlQuery: { query: string }): boolean {
   let isMutation: boolean = false;
@@ -97,7 +98,7 @@ export async function invalidateCache(
 
   // Common case is that we get one mutation at a time. But it's possible to group multiple mutation queries into one.
   // That's why the for loop is needed
-  const cache = scope.cache as Cache;
+  const cache = serviceScope.cache as Cache;
   for (const redisKey in normalizedMutation) {
     normalizedData = normalizedMutation[redisKey];
     cachedVal = await cache.cacheReadObject(redisKey) as

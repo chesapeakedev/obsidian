@@ -5,6 +5,7 @@ import * as gqlModule from "graphql-tag";
 // FIXME: fork graphql-tag to make it more deno-y
 const gql = gqlModule.default as (query: string) => unknown;
 
+/** Extracts requested field names from a GraphQL query string. */
 export function mapSelectionSet(query: string): string[] {
   // Gets fields from query and stores all in an array - used to selectively query cache
   const selectionKeysMap: Record<string, string> = {};

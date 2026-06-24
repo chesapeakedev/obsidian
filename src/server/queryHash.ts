@@ -41,6 +41,7 @@ class LinkedList {
   }
 }
 
+/** Hash table for mapping persistent query hashes to query strings. */
 export class HashTable {
   SIZE: number;
   table: (LinkedList | undefined)[];
